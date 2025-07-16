@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Logo from "../../../assets/icons/logo.png";
 import { useLocation,useNavigate } from "react-router-dom";
+import LoginBackground from "../../../assets/icons/loginBackground.png"
 
 
 const OTPVerification = ({  onVerify }) => {
@@ -8,15 +9,16 @@ const OTPVerification = ({  onVerify }) => {
   const navigate = useNavigate();
   const [email] = useState(location.state?.email || "");
   const [otp, setOtp] = useState("");
+  const [message,setMessage]=useState("");
   const [resendMessage, setResendMessage] = useState("");
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (otp.length === 5) {
       onVerify?.(otp); 
-      alert(`Verifying OTP: ${otp}`);
+      setMessage(`Verifying OTP: ${otp}`);
     } else {
-      alert("Please enter a valid 5-digit code.");
+      setMessage("Please enter a valid 5-digit code.");
     }
     navigate("/")
   };
@@ -27,7 +29,12 @@ const OTPVerification = ({  onVerify }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
+   <div  className="relative min-h-screen flex items-center justify-center bg-cover bg-no-repeat bg-center"
+            style={{ backgroundImage: `url(${LoginBackground})` }}
+          >
+
+              {message && <p className="text-green-600 text-sm mb-4">{message}</p>}
+        
       <form
         onSubmit={handleSubmit}
         className="bg-white p-8 rounded-lg shadow-lg w-full max-w-sm"

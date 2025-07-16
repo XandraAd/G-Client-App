@@ -6,6 +6,7 @@ import {
   signInWithPopup,
   sendEmailVerification,
   
+  
 } from "firebase/auth";
 
 // create user

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { auth,db} from '../../Config/Firebase';
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { collection,addDoc, serverTimestamp} from 'firebase/firestore';
-import { signUp } from '../../Config/auth';
+import { signUp,googleSignIn } from '../../Config/auth';
 
 
 const SignUp = ({switchForm}) => {
@@ -191,6 +191,14 @@ const SignUp = ({switchForm}) => {
               Login
             </button>
           </div>
+          
+           <button
+                    type="button"
+                    onClick={googleSignIn}
+                    className="w-full shadow-lg text-white bg-red-500 py-2 mt-4 rounded hover:bg-red-600 transition duration-200"
+                  >
+                    Sign in with Google
+                  </button>
         </form>
       </div>
     </div>

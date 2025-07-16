@@ -10,7 +10,7 @@ const SignIn = ({ switchForm, onSuccess, onForgotPassword }) => {
     password: "",
   });
    const [error, setError] = useState("");
-   const [needsVerification, setNeedsVerification] = useState(false);
+   const [setNeedsVerification] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {

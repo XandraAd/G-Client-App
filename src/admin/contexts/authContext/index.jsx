@@ -7,7 +7,7 @@ import { onAuthStateChanged } from "firebase/auth";
 const AuthContext = React. createContext();
 
 //Custom hook to acces the AuthContext
-export function useAuth(){
+export const useAuth=()=>{
     return useContext(AuthContext)
 }
 
@@ -22,8 +22,8 @@ export function AuthProvider ({children}){
         setCurrentUser(user);
         setUserLoggedIn(!!user);
         setLoading(false);
-    })
-    return unsubscribe
+    });
+    return ()=> unsubscribe();
   },[])
 
   const value = useMemo(() => ({

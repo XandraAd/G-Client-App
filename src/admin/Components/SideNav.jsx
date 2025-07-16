@@ -1,35 +1,25 @@
-
 import { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
+import LogOutIcon from "../../assets/icons/logoutIcon.png";
+import Logo from "../../assets/icons/logo.png";
+import NavLinks from "../Components/NavLinks";
 import DashboardIcon from "../../assets/icons/Glance Horizontal.png";
 import VectorIcon from "../../assets/icons/Vector.png";
 import CommunityIcon from "../../assets/icons/People Community.png";
-import VectorIconBlue from "../../assets/icons/VectorActive.png"
+import VectorIconBlue from "../../assets/icons/VectorActive.png";
 import HatGraduationIcon from "../../assets/icons/Hat Graduation.png";
-import DashboardIconBlue from "../../assets/icons/GlanceActive.png"
-import Logo from "../../assets/icons/logo.png";
+import DashboardIconBlue from "../../assets/icons/GlanceActive.png";
+import AdminImg from "../../assets/icons/adminImg.png";
 
 const navItems = [
   {
     title: "Dashboard",
     path: "/",
     icon: DashboardIcon,
-   activeIcon: DashboardIconBlue,},
-
-
-  {
-    title: "Invoices",
-    path: "invoices",
-    icon: VectorIcon,
-  
-  
-    
+    activeIcon: DashboardIconBlue,
   },
-  {
-    title: "Learners",
-    path: "learners",
-    icon: CommunityIcon,
-  },
+  { title: "Invoices", path: "invoices", icon: VectorIcon },
+  { title: "Learners", path: "learners", icon: CommunityIcon },
   {
     title: "Tracks",
     path: "tracks",
@@ -40,7 +30,7 @@ const navItems = [
     title: "Courses",
     path: "courses",
     icon: HatGraduationIcon,
-      activeIcon: VectorIconBlue,
+    activeIcon: VectorIconBlue,
   },
   {
     title: "Report",
@@ -58,13 +48,11 @@ function SideNav({ isOpen, onClose }) {
   const handleLogout = async () => {
     try {
       setIsLoading(true);
-      //await logout();
-      setIsLoading(false);
-      // You'll need to replace Chakra toast with a different solution
-      // For example: react-hot-toast or your own toast component
       navigate({ pathname: "/signin" });
     } catch (error) {
-      console.error('Wait still Loading',error) 
+      console.error("Logout error", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -72,80 +60,59 @@ function SideNav({ isOpen, onClose }) {
     setActiveRoute(tab);
   };
 
+  const renderUserInfo = () => (
+    <div className="flex items-center justify-between px-4 py-3 bg-inherit text-white text-xs">
+      <div className="flex items-center gap-3">
+        <img
+          src={AdminImg}
+          alt="Admin avatar"
+          className="w-8 h-8 rounded-full object-cover"
+        />
+        <div className="leading-tight">
+          <h6 className="font-semibold text-sm">admin 123</h6>
+          <p className="text-[10px]">admin123@gmail.com</p>
+        </div>
+      </div>
+      <button
+        onClick={handleLogout}
+        disabled={isLoading}
+        className="hover:text-red-300"
+      >
+        <img src={LogOutIcon} alt="Logout Icon" className="w-4 h-4" />
+      </button>
+    </div>
+  );
+
   return (
     <>
       {/* Desktop Sidebar */}
-      <div className="flex flex-col bg-blue-500  p-1  shadow-md  min-h-[90vh] w-[20.5%] gap-3 fixed">
-        <img src={Logo} className="w-[264px] h-[93px] object-contain mx-auto my-2   bg-white" alt="Company Logo"/>
-        <hr className="border-gray-200" />
-        
-        {navItems.map((navItem) => (
-          <Link
-            key={navItem.title}
-            to={navItem.path}
-            onClick={() => handleRouteChange(navItem.title)}
-            className={`capitalise ${
-              activeRoute === navItem.title 
-                ? "bg-white shadow-lg font-semibold text-blue-400 " 
-                : "bg-transparent font-normal  text-white"
-            } p-3 rounded-sm text-lg gap-4 w-full flex items-center`}
-          >
-            <img src={activeRoute === navItem.title ? navItem.activeIcon : navItem.icon} alt={navItem.title}   className="w-6 h-6" 
-      
-    />
-            <span className="text-sm">{navItem.title}</span>
-          </Link>
-        ))}
-        
-        <button
-          onClick={handleLogout}
-          disabled={isLoading}
-          className="bg-gradient-to-l from-teal-400 via-teal-300 to-teal-200 transition-all duration-1000 text-white font-bold rounded-lg uppercase shadow-lg mt-auto p-3 hover:bg-teal-400"
-        >
-          {isLoading ? "Logging out..." : "Logout"}
-        </button>
+      <div className="hidden lg:flex flex-col bg-blue-500 min-h-full lg:min-h-[89%] w-[22%] lg:rounded-b-lg fixed">
+        <div className="w-[95%] m-[5px] p-6 bg-white flex justify-center items-center shadow-md">
+          <img
+            src={Logo}
+            className="w-28 h-auto object-contain"
+            alt="Company Logo"
+          />
+        </div>
+
+        <NavLinks
+          navItems={navItems}
+          activeRoute={activeRoute}
+          handleRouteChange={handleRouteChange}
+        />
+        <div className="fixed bottom-22 w-[22%]">{renderUserInfo()}</div>
       </div>
 
       {/* Mobile Drawer */}
       {isOpen && (
-        <div className="fixed inset-0 z-50">
-          <div 
-            className="absolute inset-0 bg-black bg-opacity-50"
-            onClick={onClose}
-          />
-          <div className="relative bg-white h-full w-64 p-4">
-            <div className="flex flex-col h-full gap-4">
-              <img src={Logo} className="w-20 h-20 object-contain mx-auto" alt="Company Logo"/>
-              
-              {navItems.map((navItem, id) => (
-                <Link
-                  key={id}
-                  to={navItem.path}
-                  onClick={() => {
-                    handleRouteChange(navItem.title);
-                    onClose();
-                  }}
-                  className={`capitalise ${
-                    activeRoute === navItem.title 
-                      ? "bg-gray-200 shadow-lg " 
-                      : "bg-transparent font-semibold"
-                  } text-gray-600 p-3 rounded-lg text-lg gap-4 w-full flex items-center`}
-                >
-                  <img src={navItem.icon} alt={navItem.title} className= {`w-6 h-6 ${activeRoute === navItem.title ? navItem.activeIcon:navItem.icon}`}  />
-                  <span className={`text-sm ${
-        activeRoute === navItem.title ? "text-blue-500" : "text-gray-600"
-      }`}>{navItem.title}</span>
-                </Link>
-              ))}
-              
-              <button
-                onClick={handleLogout}
-                disabled={isLoading}
-                className="bg-gradient-to-l from-teal-400 via-teal-300 to-teal-200 transition-all duration-1000 text-white font-bold rounded-lg uppercase shadow-lg mt-auto p-3 hover:bg-teal-400"
-              >
-                {isLoading ? "Logging out..." : "Logout"}
-              </button>
-            </div>
+        <div className="fixed top-0 inset-0 z-50 lg:hidden ">
+          <div className=" bg-blue-500 h-full w-2/3 py-4 flex flex-col justify-between lg:hidden">
+            <NavLinks
+              navItems={navItems}
+              activeRoute={activeRoute}
+              handleRouteChange={handleRouteChange}
+              onClose={onClose}
+            />
           </div>
         </div>
       )}

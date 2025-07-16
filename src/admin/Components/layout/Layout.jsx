@@ -1,11 +1,15 @@
-import { Outlet, NavLink } from "react-router-dom";
+import { Outlet,useNavigate } from "react-router-dom";
 import SideNav from "../SideNav";
-//
+import Logo from "../../../assets/icons/logo.png";
+import AdminImg from "../../../assets/icons/adminImg.png";
+import { CiLogout } from "react-icons/ci";
 import { useState, useEffect, useMemo, useCallback } from "react";
-
-
+import { getAuth, signOut } from "firebase/auth";
 
 const Navigation = ({ onOpen }) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [user, setUser] = useState("");
+  const navigate = useNavigate();
   const [greetText, setGreetText] = useState("");
   const currentDate = useMemo(() => new Date(), []);
   const day = currentDate.toLocaleDateString("default", { weekday: "long" });
@@ -13,52 +17,92 @@ const Navigation = ({ onOpen }) => {
   const date = `${day}, ${month} ${currentDate.getDate()}, ${currentDate.getFullYear()}`;
 
   useEffect(() => {
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+      setUser(currentUser.displayName || currentUser.email);
+    }
     const currentHour = currentDate.getHours();
     if (currentHour < 12) setGreetText("Good Morning!");
     else if (currentHour < 18) setGreetText("Good Afternoon!");
     else setGreetText("Good Evening!");
   }, [currentDate]);
 
+  const handleLogout = async () => {
+    try {
+      setIsLoading(true);
+      const auth = getAuth();
+      await signOut(auth);
+      navigate({ pathname: "/signin" });
+    } catch (error) {
+      console.error("Logout error", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <header className="flex items-center justify-between py-4 px-4">
-      <button
-        className="block xl:hidden text-blue-600 text-2xl"
-        onClick={onOpen}
-        aria-label="Open menu"
-      >
-        &#9776;
-      </button>
-      <p className="hidden lg:flex text-sm font-semibold">
-        {greetText} {date}
-      </p>
-      <div className="flex items-center gap-4 ml-auto">
-       
-        <NavLink 
-          to="#" 
-          className="relative w-8 h-8 bg-gray-200 rounded-full"
-          aria-label="User profile"
-        >
-          {/* Add proper avatar content */}
-        </NavLink>
-        <div 
-          className="w-8 h-8 bg-gray-300 rounded-full border-2 border-green-500"
-          aria-hidden="true"
-        ></div>
+    <header className="w-full ">
+      {/* Top Row: Hamburger + Logo (left), User Info (right) */}
+      <div className="flex items-center justify-between lg:hidden">
+        {/* Left: Hamburger + Logo */}
+        <div className="flex items-center gap-1">
+          <button
+            className="text-blue-600 text-md shadow-2xl"
+            onClick={onOpen}
+            aria-label="Open menu"
+          >
+            &#9776;
+          </button>
+          <img
+            src={Logo}
+            className="w-20 h-auto object-contain "
+            alt="Company Logo"
+          />
+        </div>
+
+        {/* Right: Admin Info */}
+        <div className="flex items-center gap-1">
+          <img
+            src={AdminImg}
+            alt="Admin avatar"
+            className="w-6 h-6 rounded-full object-cover "
+          />
+          <div className="leading-tight  text-xs text-gray-800">
+            <p className="font-semibold ">admin 123</p>
+            <p className="text-[8px]">admin123@gmail.com</p>
+          </div>
+          <button onClick={handleLogout}>
+            <CiLogout className="w-4 h-4  text-blue-600 " />
+          </button>
+        </div>
+      </div>
+
+      {/* Greeting (centered on mobile, inline on lg) */}
+      <div className="mt-3 lg:text-center ">
+        <p className="text-xs font-semibold text-gray-700 ">
+          {greetText} {user} ,{date}
+        </p>
       </div>
     </header>
   );
 };
 
-function Layout() {  // Removed isAuthenticated prop
+function Layout() {
   const [isOpen, setIsOpen] = useState(false);
 
   const onOpen = useCallback(() => setIsOpen(true), []);
   const onClose = useCallback(() => setIsOpen(false), []);
-
   return (
-    <div className="flex py-2 ps-4">
-      <SideNav isOpen={isOpen} onClose={onClose} />
-      <main className="w-full xl:w-[80%] ms-auto pe-5">
+    <div className="min-h-screen flex flex-col lg:flex-row">
+      {/* Sidebar */}
+      <aside className="w-full lg:w-[220px] xl:w-[320px]">
+       <SideNav isOpen={isOpen} onClose={onClose}  />
+      </aside>
+      
+
+      {/* Main content area */}
+      <main className="flex-1  p-4">
         <Navigation onOpen={onOpen} />
         <Outlet />
       </main>
