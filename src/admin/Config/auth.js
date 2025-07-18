@@ -5,6 +5,7 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   sendEmailVerification,
+  sendPasswordResetEmail,
   
   
 } from "firebase/auth";
@@ -43,19 +44,39 @@ export const logout = () => {
   return auth.signOut();
 };
 
-//Reset Password
+// resetPassword with custom redirect
 export const resetPassword = async (email) => {
-  return auth.sendPasswordResetEmail(email);
+  const actionCodeSettings = {
+    url: `${window.location.origin}/new-password`, // route that handles the password reset form
+    handleCodeInApp: true,
+  };
+
+  return sendPasswordResetEmail(auth, email, actionCodeSettings);
 };
 
-// ✅ Verify Email
+// Verify Email
+//export const verifyEmail = async () => {
+ // const user = auth.currentUser;
+ // if (user) {
+  //  return sendEmailVerification(user);
+ // } else {
+ //   throw new Error("No user is currently signed in.");
+ // }
+//};
+
+
 export const verifyEmail = async () => {
   const user = auth.currentUser;
   if (user) {
-    return sendEmailVerification(user);
+    const actionCodeSettings = {
+      // This should match a route in your app that can handle the verification mode
+      url: `${window.location.origin}/auth-action`, // ✅ This route will check ?mode=verifyEmail
+      handleCodeInApp: true,
+    };
+
+    return sendEmailVerification(user, actionCodeSettings);
   } else {
     throw new Error("No user is currently signed in.");
   }
 };
-
 

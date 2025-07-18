@@ -20,7 +20,7 @@ const OTPVerification = ({  onVerify }) => {
     } else {
       setMessage("Please enter a valid 5-digit code.");
     }
-    navigate("/")
+    navigate("/dashboard")
   };
 
   const handleResend = () => {

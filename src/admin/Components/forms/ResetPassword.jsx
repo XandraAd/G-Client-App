@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Logo from "../../../assets/icons/logo.png";
 import { useNavigate } from "react-router-dom";
 import LoginBackground from "../../../assets/icons/loginBackground.png"
+import { resetPassword } from "../../Config/auth";
 
 const ResetPassword = () => {
   const [email, setEmail] = useState("");
@@ -9,15 +10,14 @@ const ResetPassword = () => {
   const[error,setError]=useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit =async (e) => {
     e.preventDefault();
      if (!email) {
       setError("Please enter your email");
       return;
     }
       try {
-      // Here you would typically call your password reset API
-      // For now, we'll just simulate success
+         await resetPassword(email);
       setMessage(`Password reset link sent to ${email}`);
       setError("");
     } catch (err) {
@@ -67,6 +67,7 @@ const ResetPassword = () => {
 
           <button
             type="submit"
+            
             className="w-full bg-[#01589A] text-white py-2 rounded-md hover:bg-blue-600 transition"
           >
             Reset Password
@@ -77,7 +78,7 @@ const ResetPassword = () => {
         <div className="mt-6 text-sm text-center text-gray-600">
           Back to homepage?{" "}
           <button
-            onClick={() => navigate("/signin")}
+            onClick={() => navigate("/new-password")}
             className="text-[#01589A] hover:underline font-medium"
           >
             Back

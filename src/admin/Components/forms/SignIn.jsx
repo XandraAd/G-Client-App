@@ -125,14 +125,14 @@ const SignIn = ({ switchForm, onSuccess, onForgotPassword }) => {
             Sign up
           </button>
         </div>
-
-        <button
+{/**<button
           type="button"
           onClick={googleSignIn}
           className="w-full bg-red-500 text-white py-2 mt-4 rounded hover:bg-red-600 transition duration-200"
         >
           Sign in with Google
-        </button>
+        </button> */}
+        
       </form>
     </div>
   );

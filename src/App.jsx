@@ -19,6 +19,8 @@ import OTPVerification from "./admin/Components/forms/OTpVerification";
 import LoadingIndicator from "./admin/Components/LoadingIndicator"; // optional
 import { useEffect, useState } from "react";
 import ResetPassword from "./admin/Components/forms/ResetPassword";
+import NewPassword from "./admin/Components/forms/NewPassword";
+import FirebaseActionHandler from "./admin/Config/FirebaseAction";
 
 function ProtectedRoute({ children, isAuthenticated, loading }) {
   if (loading) return <LoadingIndicator />;
@@ -46,6 +48,7 @@ function App() {
         <Route path="/signup" element={<Home />} />
         <Route path="/reset" element={<ResetPassword />} />
         <Route path="/verify-otp" element={<OTPVerification />} />
+        <Route path="/new-password" element={<NewPassword/>}/>
 
         {/* Protected dashboard area */}
         <Route
@@ -55,7 +58,7 @@ function App() {
               authChecked={authChecked}
               isAuthenticated={isAuthenticated}
             >
-              <Layout />
+              <Layout/>
             </ProtectedRoute>
           }
         >
@@ -71,6 +74,8 @@ function App() {
           path="*"
           element={<Navigate to={isAuthenticated ? "/" : "/signin"} />}
         />
+        <Route path="/auth-action" element={<FirebaseActionHandler />} />
+
       </>
     )
   );

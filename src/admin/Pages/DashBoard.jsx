@@ -3,6 +3,8 @@ import { LiaFileInvoiceSolid } from "react-icons/lia";
 import { MdArrowUpward } from "react-icons/md";
 import TracksCards from "../Components/TracksCard";
 import CalendarIcon from "../../assets/icons/calendarIcon.png"
+import BarChart from "../Components/BarChart"
+import LatestInvoice from "../Components/LatestInvoice";
 
 const DashBoard = () => {
   // Card data array
@@ -40,12 +42,13 @@ const DashBoard = () => {
   return (
     <>
     {/* Stats Cards Section */}
-      <p className="text-gray-400 text-[18px] font-normal">
+    <h4 className="mt-10 text-[24px] font-semibold">Welcome admin</h4>
+      <p className="text-gray-400 text-[18px] font-normal mt-">
         Track Activity,trends, and popular destination in real time
       </p>
-      <div>
+      <section>
         
-        <div className="my-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="my-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {statsCards.map((card) => (
             <div
               key={card.title}
@@ -75,16 +78,16 @@ const DashBoard = () => {
             </div>
           ))}
         </div>
-      </div>
+      </section>
    {/* Tracks Cards Section */}
-      <div className="py-2   min-h-full  ">
+      <section className="py-2   min-h-full lg:min-h-[300px] mb-6 ">
         <h4 className="text[20px] font-semibold text-gray-900">Tracks</h4>
      
-        <div className="my-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 ">
+        <div className="my-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4  ">
           {TracksCards.map((track) => (
             <div
               key={track.title}
-              className=" rounded-xl shadow-lg flex flex-col justify-between relative overflow-hidden"
+              className=" rounded-xl shadow-lg flex flex-col justify-between relative overflow-hidden "
             >
                
               <div
@@ -100,7 +103,7 @@ const DashBoard = () => {
               <div className="relative z-10 text-black">
                 
                 <h3 className="mt-2 px-2 text-[18px] font-semibold  w-56">{track.title}</h3>
-              <div className="flex items-center mt-2 text-gray-500 font-normal text-[14px]">
+              <div className="flex items-center mt-2 mx-2 text-gray-500 font-normal text-[14px]">
                    <img src={CalendarIcon} alt="calendar" className="w-4 h-4" />
                   <p className="ml-2">
                       {track.duration}
@@ -120,6 +123,8 @@ const DashBoard = () => {
       borderRadius: "9999px",
       marginRight: "6px",
       display: "inline-block",
+      marginBottom: "10px",
+      marginInlineStart: "4px"
     }}
 >
                         {tech.label}
@@ -131,7 +136,13 @@ const DashBoard = () => {
             </div>
           ))}
         </div>
-      </div>
+      </section>
+       {/* Bar Chart and invoice  section*/}
+         <section className=" grid grid-cols-1 md:grid-cols-2 gap-4">
+      
+      <BarChart />
+      <LatestInvoice/>
+    </section>
     </>
   );
 };

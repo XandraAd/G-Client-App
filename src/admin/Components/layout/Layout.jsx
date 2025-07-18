@@ -8,7 +8,7 @@ import { getAuth, signOut } from "firebase/auth";
 
 const Navigation = ({ onOpen }) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [user, setUser] = useState("");
+  const [user, setUser] = useState(null);
   const navigate = useNavigate();
   const [greetText, setGreetText] = useState("");
   const currentDate = useMemo(() => new Date(), []);
@@ -46,9 +46,9 @@ const Navigation = ({ onOpen }) => {
       {/* Top Row: Hamburger + Logo (left), User Info (right) */}
       <div className="flex items-center justify-between lg:hidden">
         {/* Left: Hamburger + Logo */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
           <button
-            className="text-blue-600 text-md shadow-2xl"
+            className="text-blue-600 text-lg shadow-2xl"
             onClick={onOpen}
             aria-label="Open menu"
           >
@@ -56,7 +56,7 @@ const Navigation = ({ onOpen }) => {
           </button>
           <img
             src={Logo}
-            className="w-20 h-auto object-contain "
+            className="w-28 h-auto object-contain "
             alt="Company Logo"
           />
         </div>
@@ -69,11 +69,11 @@ const Navigation = ({ onOpen }) => {
             className="w-6 h-6 rounded-full object-cover "
           />
           <div className="leading-tight  text-xs text-gray-800">
-            <p className="font-semibold ">admin 123</p>
-            <p className="text-[8px]">admin123@gmail.com</p>
+            <p className="font-semibold ">{user}</p>
+            <p className="text-[8px]">{user?.email}</p>
           </div>
           <button onClick={handleLogout}>
-            <CiLogout className="w-4 h-4  text-blue-600 " />
+            <CiLogout className="w-4 h-8  text-blue-600  " />
           </button>
         </div>
       </div>
@@ -96,7 +96,7 @@ function Layout() {
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
       {/* Sidebar */}
-      <aside className="w-full lg:w-[220px] xl:w-[320px]">
+      <aside className="w-full lg:w-[220px] xl:w-[450px]  ">
        <SideNav isOpen={isOpen} onClose={onClose}  />
       </aside>
       

@@ -17,6 +17,7 @@ const SignUp = ({switchForm}) => {
   });
 
     const [error, setError] = useState("");
+    const[message,setMessage]=useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -40,7 +41,7 @@ const SignUp = ({switchForm}) => {
 
         await signUp(registerUser.email,registerUser.password)
         //Send email verification
-        alert("Registration successfull,please verify your email")
+        setMessage("Registration successfull,please verify your email")
         switchForm();
     }catch(err){
       setError(err.message);
@@ -91,6 +92,7 @@ const SignUp = ({switchForm}) => {
 
           {/* Form Fields */}
           <div className="space-y-4">
+           {message && <p className="text-green-600 text-sm mb-4">{message}</p>}
            
               <div>
                 <label htmlFor="firstName" className="block mb-1 text-sm font-medium text-gray-700">
@@ -191,14 +193,14 @@ const SignUp = ({switchForm}) => {
               Login
             </button>
           </div>
-          
-           <button
+          {/*   <button
                     type="button"
                     onClick={googleSignIn}
                     className="w-full shadow-lg text-white bg-red-500 py-2 mt-4 rounded hover:bg-red-600 transition duration-200"
                   >
                     Sign in with Google
-                  </button>
+                  </button>*/ }
+        
         </form>
       </div>
     </div>
