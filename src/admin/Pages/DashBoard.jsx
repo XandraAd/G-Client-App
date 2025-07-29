@@ -87,7 +87,7 @@ const DashBoard = () => {
           {TracksCards.map((track) => (
             <div
               key={track.title}
-              className=" rounded-xl shadow-lg flex flex-col justify-between relative overflow-hidden "
+              className=" rounded-xl shadow-lg flex flex-col justify-evenly lg:w-[190px] xl:w-[240px] relative overflow-hidden "
             >
                
               <div
@@ -103,7 +103,7 @@ const DashBoard = () => {
               <div className="relative z-10 text-black">
                 
                 <h3 className="mt-2 px-2 text-[18px] font-semibold  w-56">{track.title}</h3>
-              <div className="flex items-center mt-2 mx-2 text-gray-500 font-normal text-[14px]">
+              <div className="flex items-center mt-2 mx-2 text-gray-500 font-normal text-[14px] xl:mb-2">
                    <img src={CalendarIcon} alt="calendar" className="w-4 h-4" />
                   <p className="ml-2">
                       {track.duration}

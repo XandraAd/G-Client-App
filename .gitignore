@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Firebase Admin Key (never commit this!)
+server/serviceAccountKey.json
+server/.env
+
 #Dependencies
 .env
 

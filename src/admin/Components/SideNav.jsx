@@ -14,7 +14,7 @@ import AdminImg from "../../assets/icons/adminImg.png";
 const navItems = [
   {
     title: "Dashboard",
-    path: "/",
+    path: "dashboard",
     icon: DashboardIcon,
     activeIcon: DashboardIconBlue,
   },
@@ -86,27 +86,29 @@ function SideNav({ isOpen, onClose }) {
   return (
     <>
       {/* Desktop Sidebar */}
-      <div className="hidden lg:flex flex-col bg-blue-500 min-h-full lg:min-h-[89%] w-[22%] lg:rounded-b-lg fixed">
-        <div className="w-[95%] m-[5px] p-6 bg-white flex justify-center items-center shadow-md">
+      <div className="hidden lg:flex flex-col bg-blue-500 min-h-full p-2 w-[22%] lg:w-[200px] xl:w-[400px] lg:rounded-b-lg fixed">
+        <div className="min-w-full mb-2 p-6 bg-white flex justify-center items-center shadow-md">
           <img
             src={Logo}
-            className="w-28 h-auto object-contain"
+            className="w-32 h-auto object-contain"
             alt="Company Logo"
           />
         </div>
+     
 
         <NavLinks
           navItems={navItems}
           activeRoute={activeRoute}
           handleRouteChange={handleRouteChange}
+         
         />
-        <div className="fixed bottom-22 w-[22%]">{renderUserInfo()}</div>
+        <div className="fixed bottom-2 w-[22%]">{renderUserInfo()}</div>
       </div>
 
       {/* Mobile Drawer */}
       {isOpen && (
         <div className="fixed top-0 inset-0 z-50 lg:hidden ">
-          <div className=" bg-blue-500 h-full w-2/3 py-4 flex flex-col justify-between lg:hidden">
+          <div className=" bg-blue-500 h-full w-2/3 p-2 flex flex-col justify-between lg:hidden">
             <NavLinks
               navItems={navItems}
               activeRoute={activeRoute}

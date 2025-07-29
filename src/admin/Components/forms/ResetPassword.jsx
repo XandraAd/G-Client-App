@@ -1,45 +1,45 @@
 import React, { useState } from "react";
 import Logo from "../../../assets/icons/logo.png";
 import { useNavigate } from "react-router-dom";
-import LoginBackground from "../../../assets/icons/loginBackground.png"
+import LoginBackground from "../../../assets/icons/loginBackground.png";
 import { resetPassword } from "../../Config/auth";
 
 const ResetPassword = () => {
   const [email, setEmail] = useState("");
-  const [message,setMessage]=useState("");
-  const[error,setError]=useState("");
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit =async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-     if (!email) {
+    if (!email) {
       setError("Please enter your email");
       return;
     }
-      try {
-         await resetPassword(email);
+    try {
+      await resetPassword(email);
       setMessage(`Password reset link sent to ${email}`);
       setError("");
     } catch (err) {
       setError("Failed to send reset email");
       console.error(err);
     }
-    
-
   };
 
   return (
-    
-    <div  className="relative min-h-screen flex items-center justify-center bg-cover bg-no-repeat bg-center"
-          style={{ backgroundImage: `url(${LoginBackground})` }}
-        >
+    <div
+      className="relative min-h-screen flex items-center justify-center bg-cover bg-no-repeat bg-center"
+      style={{ backgroundImage: `url(${LoginBackground})` }}
+    >
       <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-md">
         {/* Logo */}
         <div className="flex justify-center mb-6">
           <img src={Logo} alt="Company Logo" className="h-8 object-contain" />
         </div>
 
-        <h2 className="text-2xl font-bold text-center mb-2">Admin Reset Password</h2>
+        <h2 className="text-2xl font-bold text-center mb-2">
+          Admin Reset Password
+        </h2>
         <p className="text-sm text-center text-gray-600 mb-6">
           Enter your email to reset your password
         </p>
@@ -67,7 +67,6 @@ const ResetPassword = () => {
 
           <button
             type="submit"
-            
             className="w-full bg-[#01589A] text-white py-2 rounded-md hover:bg-blue-600 transition"
           >
             Reset Password
@@ -78,7 +77,7 @@ const ResetPassword = () => {
         <div className="mt-6 text-sm text-center text-gray-600">
           Back to homepage?{" "}
           <button
-            onClick={() => navigate("/new-password")}
+            onClick={() => navigate("/signin")}
             className="text-[#01589A] hover:underline font-medium"
           >
             Back

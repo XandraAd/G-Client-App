@@ -1,27 +1,56 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import Logo from "../../../assets/icons/logo.png";
 import { useLocation,useNavigate } from "react-router-dom";
 import LoginBackground from "../../../assets/icons/loginBackground.png"
+import axios from "axios";
 
 
-const OTPVerification = ({  onVerify }) => {
-  const location = useLocation();
+const OTPVerification = () => {
+  const {state} = useLocation();
   const navigate = useNavigate();
-  const [email] = useState(location.state?.email || "");
+
+  const email = state?.email || localStorage.getItem("otpEmail")
+
+    // ✅ This protects against empty email being passed
+  useEffect(() => {
+    if (email) {
+      localStorage.setItem("otpEmail", email);}
+      else{
+   alert("Session expired. Please sign up again.");
+      navigate("/signup");
+      }
+   
+    
+  }, [email, navigate]);
+  ;
   const [otp, setOtp] = useState("");
   const [message,setMessage]=useState("");
+  const[error,setError]= useState("")
   const [resendMessage, setResendMessage] = useState("");
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (otp.length === 5) {
-      onVerify?.(otp); 
-      setMessage(`Verifying OTP: ${otp}`);
-    } else {
-      setMessage("Please enter a valid 5-digit code.");
+   const handleVerify = async (e) => {
+    e.preventDefault()
+    try {
+      const response = await axios.post("http://localhost:5000/api/auth/verify-otp", {
+        email,
+        otp,
+      });
+
+      if (response.data.success) {
+        alert("Email verified!");
+        setMessage("Email verified successfully!")
+        localStorage.removeItem("otpEmail"); // ✅ Clean up
+        navigate("/dashboard");
+      } else {
+        setError("Incorrect or expired OTP");
+      }
+    } catch (err) {
+       console.error("Verification error:", err); // Log full error
+      setError(err.response?.data?.message || "Verification failed");
     }
-    navigate("/dashboard")
   };
+  
+
 
   const handleResend = () => {
     setResendMessage("A new OTP has been sent.");
@@ -34,9 +63,13 @@ const OTPVerification = ({  onVerify }) => {
           >
 
               {message && <p className="text-green-600 text-sm mb-4">{message}</p>}
+              {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
         
       <form
-        onSubmit={handleSubmit}
+       onSubmit={(e) => {
+          e.preventDefault();
+          handleVerify();
+        }}
         className="bg-white p-8 rounded-lg shadow-lg w-full max-w-sm"
       >
          <img 
@@ -66,7 +99,8 @@ const OTPVerification = ({  onVerify }) => {
         />
 
         <button
-          type="submit"
+          type="button"
+          onClick={handleVerify}
           className="w-full bg-[#01589A] text-white py-2 rounded hover:bg-blue-600 transition duration-200"
         >
           Verify

@@ -1,16 +1,16 @@
 import Logo from "../../../assets/icons/logo.png";
 import { useState} from "react";
-import { signIn, googleSignIn } from "../../Config/auth";
+import { signIn } from "../../Config/auth";
 import { useNavigate } from "react-router-dom";
 
 
-const SignIn = ({ switchForm, onSuccess, onForgotPassword }) => {
+const SignIn = ({ switchForm, onForgotPassword,onSucess }) => {
   const [login, setLogin] = useState({
     email: "",
     password: "",
   });
    const [error, setError] = useState("");
-   const [setNeedsVerification] = useState(false);
+   
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -27,25 +27,26 @@ const SignIn = ({ switchForm, onSuccess, onForgotPassword }) => {
     }
 
     try {
-      // Call Firebase sign-in
-      const userCredential = await signIn(login.email, login.password);
-      const user = userCredential.user; //Get user data from the response
-
-      if(!user.emailVerified) {
-          setNeedsVerification(true);
-           navigate("/verify-otp", { state: { email: user.email } });
-        
-        
-        return;
-      }
-
-      // Callback on success
-      onSuccess(user.email);
-    } catch (error) {
-      console.error("Login error:", error.code,error.message);
-      setError("Failed to login: " + error.message);
+    const userCredential = await signIn(login.email, login.password);
+    const user = userCredential.user; // Now properly used
+    
+    if (!user.emailVerified) {
+      navigate("/verify-otp", { state: { email: user.email } });
+      return;
     }
-  };
+    
+    navigate("/dashboard");
+    
+  } catch (error) {
+    console.error("Login error:", error.code, error.message);
+    setError("Failed to login: " + error.message);
+    
+    // Handle case where user needs verification
+    if (error.code === "auth/email-not-verified") {
+      navigate("/verify-otp", { state: { email: login.email } });
+    }
+  }
+};
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center p-4">
@@ -125,13 +126,7 @@ const SignIn = ({ switchForm, onSuccess, onForgotPassword }) => {
             Sign up
           </button>
         </div>
-{/**<button
-          type="button"
-          onClick={googleSignIn}
-          className="w-full bg-red-500 text-white py-2 mt-4 rounded hover:bg-red-600 transition duration-200"
-        >
-          Sign in with Google
-        </button> */}
+
         
       </form>
     </div>

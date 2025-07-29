@@ -2,25 +2,31 @@ import { auth } from "./Firebase";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  GoogleAuthProvider,
-  signInWithPopup,
-  sendEmailVerification,
+  // GoogleAuthProvider,
+  // signInWithPopup,
+  
   sendPasswordResetEmail,
-  
-  
 } from "firebase/auth";
 
 // create user
 export const signUp = async (email, password) => {
-  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-  await sendEmailVerification(userCredential.user);
+  const userCredential = await createUserWithEmailAndPassword(
+    auth,
+    email,
+    password
+  );
+ 
   return userCredential;
 };
 
 // Login user
 export const signIn = async (email, password) => {
   try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
     if (!userCredential?.user) {
       throw new Error("auth/user-not-found");
     }
@@ -31,13 +37,6 @@ export const signIn = async (email, password) => {
   }
 };
 
-//google SignIn
-export const googleSignIn = async () => {
-  const provider = new GoogleAuthProvider();
-  const result = await signInWithPopup(auth, provider);
-  const user = result.user;
-  return user;
-};
 
 // Logout User
 export const logout = () => {
@@ -54,18 +53,7 @@ export const resetPassword = async (email) => {
   return sendPasswordResetEmail(auth, email, actionCodeSettings);
 };
 
-// Verify Email
-//export const verifyEmail = async () => {
- // const user = auth.currentUser;
- // if (user) {
-  //  return sendEmailVerification(user);
- // } else {
- //   throw new Error("No user is currently signed in.");
- // }
-//};
-
-
-export const verifyEmail = async () => {
+{/**export const verifyEmail = async () => {
   const user = auth.currentUser;
   if (user) {
     const actionCodeSettings = {
@@ -77,6 +65,7 @@ export const verifyEmail = async () => {
     return sendEmailVerification(user, actionCodeSettings);
   } else {
     throw new Error("No user is currently signed in.");
-  }
-};
+  } */}
+
+
 

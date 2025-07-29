@@ -40,14 +40,14 @@ const LatestInvoice = () => {
 
       {/* Labels Row */}
       <div
-        className="flex justify-between px-4 py-2 font-normal text-sm lg:text-[20px]  uppercase "
+        className="flex justify-between px-4 py-2 font-normal text-sm lg:text-[12px]  uppercase "
         style={{ color: "#7F7E83" }}
       >
         <span>Name</span>
         <span>Amount</span>
       </div>
 
-      <div className="space-y-2.5 h-[200px] border">
+      <div className="space-y-2.5 h-[200px] ">
         {userInfo.map((user, index) => {
           const bgColor = index % 2 === 0 ? "bg-white" : "bg-gray-50";
           return (

@@ -16,6 +16,7 @@ import Courses from "./admin/Pages/Courses";
 import Report from "./admin/Pages/Report";
 import Tracks from "./admin/Pages/Tracks";
 import OTPVerification from "./admin/Components/forms/OTpVerification";
+import TrackDetails from "./admin/Pages/TrackDetails";
 import LoadingIndicator from "./admin/Components/LoadingIndicator"; // optional
 import { useEffect, useState } from "react";
 import ResetPassword from "./admin/Components/forms/ResetPassword";
@@ -43,6 +44,11 @@ function App() {
   const router = createBrowserRouter(
     createRoutesFromElements(
       <>
+
+        {/* Root path redirects to signin */}
+        <Route path="/" element={<Navigate to="/signin" replace />} />
+
+
         {/* Public pages */}
         <Route path="/signin" element={<Home />} />
         <Route path="/signup" element={<Home />} />
@@ -52,7 +58,7 @@ function App() {
 
         {/* Protected dashboard area */}
         <Route
-          path="/"
+          path="/dashboard"
           element={
             <ProtectedRoute
               authChecked={authChecked}
@@ -62,25 +68,42 @@ function App() {
             </ProtectedRoute>
           }
         >
-          <Route index element={authChecked ? <DashBoard/> : null }/>
-          <Route path="invoices" element={<Invoices />} />
-          <Route path="tracks" element={<Tracks />} />
-          <Route path="learners" element={<Learners />} />
-          <Route path="courses" element={<Courses />} />
-          <Route path="report" element={<Report />} />
+          <Route index element={authChecked ? <DashBoard /> : null} />
+  <Route path="invoices" element={<Invoices />} />
+  <Route path="tracks" element={<Tracks />} />
+  <Route path="tracks/:id" element={<TrackDetails />} />
+  <Route path="tracks/edit/:id" element={<TrackDetails />} />
+  <Route path="learners" element={<Learners />} />
+  <Route path="courses" element={<Courses />} />
+  <Route path="report" element={<Report />} />
+         
+
         </Route>
+          
         {/* Catch-all redirect */}
         <Route
           path="*"
-          element={<Navigate to={isAuthenticated ? "/" : "/signin"} />}
+          element={<Navigate to={isAuthenticated ? "/dashboard" : "/signin"} />}
         />
-        <Route path="/auth-action" element={<FirebaseActionHandler />} />
+       <Route path="/auth-action" element={<FirebaseActionHandler />} />
 
       </>
     )
   );
 
+ if (!authChecked) {
+    return <LoadingIndicator />;
+  }
+
   return <RouterProvider router={router} />;
+}
+
+// Separate component for protected layout
+function ProtectedLayout({ isAuthenticated, authChecked, children }) {
+  if (!authChecked) return <LoadingIndicator />;
+  if (!isAuthenticated) return <Navigate to="/signin" replace />;
+  
+  return <Layout>{children}</Layout>;
 }
 
 export default App;

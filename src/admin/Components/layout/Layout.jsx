@@ -88,16 +88,17 @@ const Navigation = ({ onOpen }) => {
   );
 };
 
-function Layout() {
+function Layout({user}) {
   const [isOpen, setIsOpen] = useState(false);
+  
 
   const onOpen = useCallback(() => setIsOpen(true), []);
   const onClose = useCallback(() => setIsOpen(false), []);
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
       {/* Sidebar */}
-      <aside className="w-full lg:w-[220px] xl:w-[450px]  ">
-       <SideNav isOpen={isOpen} onClose={onClose}  />
+      <aside className="w-full  lg:w-[220px] xl:w-[400px]  ">
+       <SideNav isOpen={isOpen} onClose={onClose} currentUser={user} />
       </aside>
       
 

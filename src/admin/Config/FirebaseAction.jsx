@@ -23,12 +23,12 @@ const FirebaseActionHandler = () => {
     } else if (mode === "verifyEmail") {
       applyActionCode(auth, oobCode)
         .then(() => {
-          setMessage("Email verified successfully!");
-          navigate("/signin");
+          setMessage("✅ Email verified successfully!");
+          setTimeout(() => navigate("/verify-otp"), 3000);
         })
         .catch(() => {
-          setMessage("Invalid or expired link.");
-          navigate("/signin");
+          setMessage("❌ Invalid or expired verification link.");
+          setTimeout(() => navigate("/verify-otp"), 3000);
         });
     } else {
       navigate("/signin");

@@ -1,131 +1,155 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
+import axios from "axios";
 import Logo from "../../../assets/icons/logo.png";
-import { useNavigate } from 'react-router-dom'; 
-import { auth,db} from '../../Config/Firebase';
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { collection,addDoc, serverTimestamp} from 'firebase/firestore';
-import { signUp,googleSignIn } from '../../Config/auth';
+//import { useNavigate } from "react-router-dom";
+import { db } from "../../Config/Firebase";
+import { deleteUser } from "firebase/auth";
 
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { signUp } from "../../Config/auth";
 
-const SignUp = ({switchForm}) => {
+const SignUp = ({ switchForm,onSuccess }) => {
   const [registerUser, setRegisterUser] = useState({
     firstName: "",
     lastName: "",
     email: "",
     password: "",
     passwordConfirmation: "",
+    phoneNumber: " ",
   });
 
-    const [error, setError] = useState("");
-    const[message,setMessage]=useState("");
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
 
-  const { firstName, lastName, email, password, passwordConfirmation } = registerUser;
+  //const navigate = useNavigate();
 
+  const { firstName, lastName, email, password, passwordConfirmation } =
+    registerUser;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setRegisterUser((prev) => ({ ...prev, [name]: value }));
   };
 
- const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
+    setError("");
+
+       // Client-side validation
     if (registerUser.password !== registerUser.passwordConfirmation) {
-      return setError("Passwords do not match");
+      setError("Passwords don't match");
+      return;
     }
+    setLoading(true);
+    setMessage("signing up... please verify email after signup");
+    let userCredential = null;
 
     try {
-        setLoading(true)
+      // 1. Create user in Firebase Auth
+       userCredential = await signUp(registerUser.email, registerUser.password);
 
-        await signUp(registerUser.email,registerUser.password)
-        //Send email verification
-        setMessage("Registration successfull,please verify your email")
-        switchForm();
-    }catch(err){
-      setError(err.message);
-    }finally{
-        setLoading(true);
+      // 2. Send OTP
+      const otpResponse = await axios.post(
+        "http://localhost:5000/api/auth/send-otp",
+        {email:registerUser.email }
+      );
+
+      if (otpResponse.data.success) {
+        // 3. Store additional user data in Firestore
+        await addDoc(collection(db, "users"), {
+          email,
+          createdAt: serverTimestamp(),
+          emailVerified: false, // Track verification status
+        });
+        console.log("Redirecting to OTP page with email:", email);
+
+        // 4. Call onSuccess with the email to trigger navigation
+      setMessage("Signup successful! A verification email has been sent.");
+       // 🔥 Delay to ensure userCredential is registered before redirect
+  setTimeout(() => {
+  onSuccess(registerUser.email)
+  }, 100); // tiny delay ensures `navigate()` works
+
     }
-      try {     // Create user with email and password
-   await createUserWithEmailAndPassword(auth, registerUser.email, registerUser.password);
+  } catch (error) {
+    console.error("Signup error:", error);
+    setError(error.message)
 
 
-         // If you want to store additional user data
-       await addDoc(collection(db, "users"), {
-        firstName: registerUser.firstName,
-         lastName: registerUser.lastName,
-         email: registerUser.email,
-        createdAt: serverTimestamp()
-       });
-
-      navigate("/"); // Redirect after successful signup
-    } catch (err) {
-      console.error(err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }}
-
-      
-      
- 
-  
-
+      // If OTP fails but user was created:
+      if (userCredential?.user) {
+        await deleteUser(userCredential.user); // Rollback user creation
+      }
+      setError(error.message);
+    }
+  };
   return (
     <div className="min-h-[80vh] flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white rounded-lg shadow-lg overflow-hidden">
         <form onSubmit={handleSubmit} className="p-6 md:p-8">
           {/* Logo Section */}
           <div className="flex flex-col items-center mb-6">
-            <img 
-              src={Logo} 
-              className="w-[106.67px] h-[30px] object-contain" 
-              alt="Company Logo" 
+            <img
+              src={Logo}
+              className="w-[106.67px] h-[30px] object-contain"
+              alt="Company Logo"
             />
-            <h2 className="text-2xl font-bold mt-4 text-gray-800">Admin Sign Up</h2>
+            <h2 className="text-2xl font-bold mt-4 text-gray-800">
+              Admin Sign Up
+            </h2>
             <p className="text-center text-gray-600 mt-2">
-              Create Your Account to Manage and Access the Dashboard Effortlessly.
+              Create Your Account to Manage and Access the Dashboard
+              Effortlessly.
             </p>
           </div>
 
           {/* Form Fields */}
           <div className="space-y-4">
-           {message && <p className="text-green-600 text-sm mb-4">{message}</p>}
-           
-              <div>
-                <label htmlFor="firstName" className="block mb-1 text-sm font-medium text-gray-700">
-                  First name
-                </label>
-                <input
-                  type="text"
-                  id="firstName"
-                  name="firstName"
-                  value={firstName}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-3 py-2 border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-                />
-              </div>
-              <div>
-                <label htmlFor="lastName" className="block mb-1 text-sm font-medium text-gray-700">
-                  Last name
-                </label>
-                <input
-                  type="text"
-                  id="lastName"
-                  name="lastName"
-                  value={lastName}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-3 py-2 border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-                />
-              </div>
-            
+            {message && (
+              <p className="text-green-600 text-sm mb-4">{message}</p>
+            )}
 
             <div>
-              <label htmlFor="email" className="block mb-1 text-sm font-medium text-gray-700">
+              <label
+                htmlFor="firstName"
+                className="block mb-1 text-sm font-medium text-gray-700"
+              >
+                First name
+              </label>
+              <input
+                type="text"
+                id="firstName"
+                name="firstName"
+                value={firstName}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="lastName"
+                className="block mb-1 text-sm font-medium text-gray-700"
+              >
+                Last name
+              </label>
+              <input
+                type="text"
+                id="lastName"
+                name="lastName"
+                value={lastName}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="email"
+                className="block mb-1 text-sm font-medium text-gray-700"
+              >
                 Email
               </label>
               <input
@@ -140,7 +164,10 @@ const SignUp = ({switchForm}) => {
             </div>
 
             <div>
-              <label htmlFor="password" className="block mb-1 text-sm font-medium text-gray-700">
+              <label
+                htmlFor="password"
+                className="block mb-1 text-sm font-medium text-gray-700"
+              >
                 Password
               </label>
               <input
@@ -156,7 +183,10 @@ const SignUp = ({switchForm}) => {
             </div>
 
             <div>
-              <label htmlFor="passwordConfirmation" className="block mb-1 text-sm font-medium text-gray-700">
+              <label
+                htmlFor="passwordConfirmation"
+                className="block mb-1 text-sm font-medium text-gray-700"
+              >
                 Confirm Password
               </label>
               <input
@@ -170,37 +200,30 @@ const SignUp = ({switchForm}) => {
               />
             </div>
           </div>
-           {error && <div className="error-message text-red-600">{error}</div>}
+          {error && <div className="error-message text-red-600">{error}</div>}
 
           {/* Submit Button */}
           <button
-          type="submit" 
-        disabled={loading}
-        className={`submit-btn w-full mt-6 px-4 py-2 text-white font-medium rounded-md bg-[#01589A] hover:bg-blue-600 transition duration-200 shadow-sm"
-          > ${loading ? 'Creating...' : ' '}`}>
-            
-           Sign up
+            type="submit"
+            disabled={loading}
+            className={`w-full mt-6 px-4 py-2 text-white font-medium rounded-md
+               bg-[#01589A] hover:bg-blue-600 transition duration-200 shadow-sm"
+          `}
+          >
+         {loading ? "Creating..." : " Sign Up"}
           </button>
 
           {/* Login Link */}
           <div className="mt-4 text-center text-sm text-gray-600">
-            Already have an account?{' '}
-            <button 
-            type='button'
+            Already have an account?{" "}
+            <button
+              type="button"
               onClick={switchForm}
               className="text-[#01589A] hover:underline font-medium"
             >
               Login
             </button>
           </div>
-          {/*   <button
-                    type="button"
-                    onClick={googleSignIn}
-                    className="w-full shadow-lg text-white bg-red-500 py-2 mt-4 rounded hover:bg-red-600 transition duration-200"
-                  >
-                    Sign in with Google
-                  </button>*/ }
-        
         </form>
       </div>
     </div>

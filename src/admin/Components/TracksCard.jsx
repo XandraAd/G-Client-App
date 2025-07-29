@@ -7,6 +7,7 @@ import BgData from "../../assets/icons/bgData.png";
 const TracksCards = [
   {
     title: "Software Engineering",
+    Description:"Unlock your potential with our Software Engineering track, designed to equip you with the skills needed to excel in the tech industry.",
     value: " 400",
     duration: "12 weeks",
     program: [
@@ -17,6 +18,7 @@ const TracksCards = [
   },
   {
     title: "Cloud Computing",
+    Description:"Cloud Computing Expertise : Master the skills to design, deploy, and manage scalable cloud solutions with our comprehensive track.",
     value: " 350",
     duration: "12 weeks",
     program: [
@@ -27,6 +29,7 @@ const TracksCards = [
   },
   {
     title: "Data Science",
+    Description:"Data Science Mastery : Dive into the world of data with our track, where you'll learn to analyze, visualize, and derive insights from complex datasets.",
     value: " 400",
     duration: "12 weeks",
     program: [
