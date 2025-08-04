@@ -10,6 +10,8 @@ import VectorIconBlue from "../../assets/icons/VectorActive.png";
 import HatGraduationIcon from "../../assets/icons/Hat Graduation.png";
 import DashboardIconBlue from "../../assets/icons/GlanceActive.png";
 import AdminImg from "../../assets/icons/adminImg.png";
+import { useAuth } from "../contexts/authContext/index"
+
 
 const navItems = [
   {
@@ -40,11 +42,12 @@ const navItems = [
   },
 ];
 
-function SideNav({ isOpen, onClose }) {
+function SideNav({ isOpen, onClose,user}) {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [activeRoute, setActiveRoute] = useState(navItems[0].title);
-
+  
+const {currentUser}=useAuth()
   const handleLogout = async () => {
     try {
       setIsLoading(true);
@@ -61,25 +64,32 @@ function SideNav({ isOpen, onClose }) {
   };
 
   const renderUserInfo = () => (
-    <div className="flex items-center justify-between px-4 py-3 bg-inherit text-white text-xs">
-      <div className="flex items-center gap-3">
-        <img
-          src={AdminImg}
-          alt="Admin avatar"
-          className="w-8 h-8 rounded-full object-cover"
-        />
-        <div className="leading-tight">
-          <h6 className="font-semibold text-sm">admin 123</h6>
-          <p className="text-[10px]">admin123@gmail.com</p>
+    <div className="flex flex-col items-start gap-2 px-4 py-3 text-white text-xs">
+      <div className="flex items-center gap-3 w-full justify-between">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+           onClick={() => navigate("/dashboard/manage-profile")}
+            className="focus:outline-none"
+            aria-label="Edit profile"
+          >
+            <img
+              src={currentUser?.photoURL || AdminImg}
+              alt="Admin avatar"
+              className="w-8 h-8 rounded-full object-cover"
+            />
+          </button>
+          <div className="leading-tight">
+            <h6 className="font-semibold text-sm">{user.name || "Admin"}</h6>
+            <p className="text-[10px]">{user.email || "Loading"}</p>
+          </div>
         </div>
+        <button onClick={handleLogout} disabled={isLoading}>
+          <img src={LogOutIcon} alt="Logout" className="w-4 h-4" />
+        </button>
       </div>
-      <button
-        onClick={handleLogout}
-        disabled={isLoading}
-        className="hover:text-red-300"
-      >
-        <img src={LogOutIcon} alt="Logout Icon" className="w-4 h-4" />
-      </button>
+
+   
     </div>
   );
 
@@ -88,36 +98,35 @@ function SideNav({ isOpen, onClose }) {
       {/* Desktop Sidebar */}
       <div className="hidden lg:flex flex-col bg-blue-500 min-h-full p-2 w-[22%] lg:w-[200px] xl:w-[400px] lg:rounded-b-lg fixed">
         <div className="min-w-full mb-2 p-6 bg-white flex justify-center items-center shadow-md">
-          <img
-            src={Logo}
-            className="w-32 h-auto object-contain"
-            alt="Company Logo"
-          />
+          <img src={Logo} className="w-32 h-auto object-contain" alt="Company Logo" />
         </div>
-     
 
         <NavLinks
           navItems={navItems}
           activeRoute={activeRoute}
           handleRouteChange={handleRouteChange}
-         
         />
+
         <div className="fixed bottom-2 w-[22%]">{renderUserInfo()}</div>
       </div>
 
       {/* Mobile Drawer */}
       {isOpen && (
-        <div className="fixed top-0 inset-0 z-50 lg:hidden ">
-          <div className=" bg-blue-500 h-full w-2/3 p-2 flex flex-col justify-between lg:hidden">
+        <div className="fixed top-0 inset-0 z-50 lg:hidden">
+          <div className="bg-blue-500 h-full w-2/3 p-2 flex flex-col justify-between">
             <NavLinks
               navItems={navItems}
               activeRoute={activeRoute}
               handleRouteChange={handleRouteChange}
               onClose={onClose}
             />
+            <div className="mb-4">{renderUserInfo()}</div>
           </div>
         </div>
       )}
+
+  
+
     </>
   );
 }

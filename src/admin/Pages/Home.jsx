@@ -20,7 +20,10 @@ const Home = () => {
   }, [location.pathname]);
 
   const handleAuthSuccess = (email) => {
-    navigate("/verify-otp", { state: { email } });
+    navigate("/verify-otp", 
+      { state: { email },
+      replace:true });
+      
   };
 
   const toggleForm = () => {
@@ -30,6 +33,23 @@ const Home = () => {
   const handleForgotPassword = () => {
     navigate("/reset", { replace: true });
   };
+
+  let formComponent;
+  if (currentPath === "/reset") {
+    formComponent = <ResetPassword />;
+  } else if (currentPath === "/signin") {
+    formComponent = (
+      <SignIn
+        switchForm={toggleForm}
+      
+        onForgotPassword={handleForgotPassword}
+      />
+    );
+  } else if (currentPath === "/verify-otp") {
+    formComponent = <OTPVerification />;
+  } else {
+    formComponent = <SignUp switchForm={toggleForm} onSuccess={handleAuthSuccess} />;
+  }
 
   return (
     <div
@@ -43,19 +63,7 @@ const Home = () => {
       />
 
       <div className="z-10 relative flex justify-center">
-        {currentPath === "/reset" ? (
-          <ResetPassword />
-        ) : currentPath === "/signin" ? (
-          <SignIn
-            switchForm={toggleForm}
-            onSuccess={handleAuthSuccess}
-            onForgotPassword={handleForgotPassword}
-          />
-        ) : currentPath === "/verify-otp" ? (
-          <OTPVerification />
-        ) : (
-          <SignUp switchForm={toggleForm} onSuccess={handleAuthSuccess} />
-        )}
+        {formComponent}
       </div>
     </div>
   );

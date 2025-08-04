@@ -2,9 +2,11 @@ import Logo from "../../../assets/icons/logo.png";
 import { useState} from "react";
 import { signIn } from "../../Config/auth";
 import { useNavigate } from "react-router-dom";
+import {collection,query,where,getDocs} from "firebase/firestore"
+import {db} from "../../Config/Firebase.js"
 
 
-const SignIn = ({ switchForm, onForgotPassword,onSucess }) => {
+const SignIn = ({ switchForm, onForgotPassword }) => {
   const [login, setLogin] = useState({
     email: "",
     password: "",
@@ -18,33 +20,40 @@ const SignIn = ({ switchForm, onForgotPassword,onSucess }) => {
     setLogin((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    // Simple validation
-    if (!login.email || !login.password) {
-      return alert("Please enter your email and password.");
-    }
+  if (!login.email || !login.password) {
+    return alert("Please enter your email and password.");
+  }
 
-    try {
+  try {
     const userCredential = await signIn(login.email, login.password);
-    const user = userCredential.user; // Now properly used
-    
-    if (!user.emailVerified) {
-      navigate("/verify-otp", { state: { email: user.email } });
-      return;
+    const user = userCredential.user;
+
+    // ✅ Check emailVerified from Firestore, not Firebase Auth
+    const q = query(
+      collection(db, "users"),
+      where("email", "==", login.email)
+    );
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+      const userDoc = querySnapshot.docs[0];
+      const userData = userDoc.data();
+
+      if (userData.emailVerified === true) {
+        navigate("/dashboard");
+      } else {
+        navigate("/verify-otp", { state: { email: login.email } });
+      }
+    } else {
+      setError("User record not found.");
     }
-    
-    navigate("/dashboard");
-    
+
   } catch (error) {
     console.error("Login error:", error.code, error.message);
     setError("Failed to login: " + error.message);
-    
-    // Handle case where user needs verification
-    if (error.code === "auth/email-not-verified") {
-      navigate("/verify-otp", { state: { email: login.email } });
-    }
   }
 };
 

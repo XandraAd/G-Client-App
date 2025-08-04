@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 
 import CalendarIcon from "../../assets/icons/calendarIcon.png";
 import { CiSearch } from "react-icons/ci";
+import { IoPersonOutline } from "react-icons/io5";
 import AddTracks from "../Components/forms/AddTrack"
 import ReactModal from 'react-modal';
 
@@ -136,6 +137,10 @@ const Tracks = () => {
                   <img src={CalendarIcon} alt="calendar" className="w-4 h-4" />
                   <p className="ml-2">{track.duration}</p>
                 </div>
+                 <div className="flex items-center mt-2 text-gray-500 font-normal text-[14px]">
+                  <IoPersonOutline className="w-4 h-4" /> 
+                  <p className="ml-2">{track.instructor}</p>
+                </div>
 
                 <div className="mt-2">
                   {track.program.map((tech) => {
@@ -144,7 +149,7 @@ const Tracks = () => {
                     const textColor = tech.textColor || "#1E3A8A";
                     return (
                       <span
-                        key={tech.label}
+                        key={label}
                         style={{
                           backgroundColor: bgColor,
                           color: textColor,

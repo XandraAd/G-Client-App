@@ -3,6 +3,7 @@ import nodemailer from 'nodemailer';
 import dotenv from "dotenv"
 import { db, Timestamp } from "../firebase-admin.js"; // Consolidated imports
 
+
 dotenv.config();
 const router = express.Router();
 
@@ -57,7 +58,7 @@ const otp = generateOTP();
         from: `"Admin" <${process.env.EMAIL_USER}>`,
         to: email,
         subject: "Your Verification Code",
-        html: `<b>${otp}</b> is your OTP (expires in ${OTP_EXPIRY_MIN} minutes)`
+        html: `This is your OTP code, <b>${otp}</b>. (expires in ${OTP_EXPIRY_MIN} minutes)`
       }),
       saveOTP(email, otp)
     ]);
@@ -95,7 +96,20 @@ router.post("/verify-otp", async (req, res) => {
     if (data.otp !== otp) return res.status(401).json({ error: "Invalid OTP" });
     if (now > data.expiresAt) return res.status(410).json({ error: "OTP expired" });
 
+    // ✅ 1. Mark OTP doc as verified
     await docRef.update({ verified: true });
+
+    // ✅ 2. Update user's emailVerified field in Firestore
+    const usersRef = db.collection("users");
+    const userSnapshot = await usersRef.where("email", "==", email).get();
+
+    if (!userSnapshot.empty) {
+      const userDoc = userSnapshot.docs[0];
+      await userDoc.ref.update({ emailVerified: true });
+      console.log(`✅ Updated emailVerified to true for user: ${email}`);
+    } else {
+      console.warn(`⚠️ User not found in users collection for email: ${email}`);
+    }
     res.json({ success: true });
   } catch (error) {
     console.error("Verification Error:", error);

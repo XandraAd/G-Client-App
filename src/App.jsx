@@ -15,6 +15,7 @@ import Learners from "./admin/Pages/Learners";
 import Courses from "./admin/Pages/Courses";
 import Report from "./admin/Pages/Report";
 import Tracks from "./admin/Pages/Tracks";
+import ManageProfile from "./admin/Pages/ManageProfile";
 import OTPVerification from "./admin/Components/forms/OTpVerification";
 import TrackDetails from "./admin/Pages/TrackDetails";
 import LoadingIndicator from "./admin/Components/LoadingIndicator"; // optional
@@ -51,7 +52,7 @@ function App() {
 
         {/* Public pages */}
         <Route path="/signin" element={<Home />} />
-        <Route path="/signup" element={<Home />} />
+        <Route path="/signup" element={<Home  />} />
         <Route path="/reset" element={<ResetPassword />} />
         <Route path="/verify-otp" element={<OTPVerification />} />
         <Route path="/new-password" element={<NewPassword/>}/>
@@ -76,6 +77,7 @@ function App() {
   <Route path="learners" element={<Learners />} />
   <Route path="courses" element={<Courses />} />
   <Route path="report" element={<Report />} />
+  <Route path="manage-profile" element={<ManageProfile/>}/>
          
 
         </Route>

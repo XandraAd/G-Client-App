@@ -1,11 +1,11 @@
 //express routes
 
 import express from "express"
-//import admin from "firebase-admin"
+
 import {Track} from "../models/Tracks.js"
 import {db}  from "../firebase-admin.js";
-import { v4 as uuidv4 } from 'uuid';
-import { cloudinary } from "../utils/cloudinary.js"; // add this line
+
+import { cloudinary } from "../utils/cloudinary.js"; 
 
 
 const router = express.Router();
@@ -27,7 +27,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// routes/tracks.js or similar
+
 
 // GET a single track by ID
 router.get('/:id', async (req, res) => {
@@ -98,7 +98,7 @@ router.post('/', async (req, res) => {
 
 if (newTrack.bgImg?.startsWith("data:image/")) {
   console.log("📤 Uploading to Cloudinary...");
-  console.log("🔐 Cloudinary API Key:", process.env.CLOUDINARY_API_KEY); // 🔍 just to verify
+  console.log("🔐 Cloudinary API Key:", process.env.CLOUDINARY_API_KEY); // 🔍 
   const uploadResponse = await cloudinary.uploader.upload(newTrack.bgImg, {
     folder: "tracks",
   });

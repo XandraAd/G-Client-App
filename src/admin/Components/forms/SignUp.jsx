@@ -1,14 +1,15 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import axios from "axios";
 import Logo from "../../../assets/icons/logo.png";
-//import { useNavigate } from "react-router-dom";
+import {useNavigate} from "react-router-dom"
+
 import { db } from "../../Config/Firebase";
-import { deleteUser } from "firebase/auth";
+import { deleteUser ,updateProfile} from "firebase/auth";
 
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { signUp } from "../../Config/auth";
 
-const SignUp = ({ switchForm,onSuccess }) => {
+const SignUp = ({ switchForm}) => {
   const [registerUser, setRegisterUser] = useState({
     firstName: "",
     lastName: "",
@@ -21,8 +22,11 @@ const SignUp = ({ switchForm,onSuccess }) => {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [shouldRedirect, setShouldRedirect] = useState(false);
 
-  //const navigate = useNavigate();
+  const navigate=useNavigate()
+
+  
 
   const { firstName, lastName, email, password, passwordConfirmation } =
     registerUser;
@@ -32,58 +36,69 @@ const SignUp = ({ switchForm,onSuccess }) => {
     setRegisterUser((prev) => ({ ...prev, [name]: value }));
   };
 
+  // ✅ Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
-       // Client-side validation
     if (registerUser.password !== registerUser.passwordConfirmation) {
       setError("Passwords don't match");
       return;
     }
+
     setLoading(true);
-    setMessage("signing up... please verify email after signup");
+    setMessage("Signing up... please verify email after signup");
     let userCredential = null;
 
     try {
       // 1. Create user in Firebase Auth
-       userCredential = await signUp(registerUser.email, registerUser.password);
+      userCredential = await signUp(registerUser.email, registerUser.password);
+      const user = userCredential.user;
 
-      // 2. Send OTP
+      // 2. Update display name
+      await updateProfile(user, {
+        displayName: `${registerUser.firstName} ${registerUser.lastName}`,
+      });
+
+      // 3. Send OTP
       const otpResponse = await axios.post(
         "http://localhost:5000/api/auth/send-otp",
-        {email:registerUser.email }
+        { email: registerUser.email }
       );
 
       if (otpResponse.data.success) {
-        // 3. Store additional user data in Firestore
+        // 4. Store user data in Firestore
         await addDoc(collection(db, "users"), {
-          email,
+          email: registerUser.email,
           createdAt: serverTimestamp(),
-          emailVerified: false, // Track verification status
+          emailVerified: false,
         });
-        console.log("Redirecting to OTP page with email:", email);
 
-        // 4. Call onSuccess with the email to trigger navigation
-      setMessage("Signup successful! A verification email has been sent.");
-       // 🔥 Delay to ensure userCredential is registered before redirect
-  setTimeout(() => {
-  onSuccess(registerUser.email)
-  }, 100); // tiny delay ensures `navigate()` works
-
-    }
-  } catch (error) {
-    console.error("Signup error:", error);
-    setError(error.message)
-
-
-      // If OTP fails but user was created:
-      if (userCredential?.user) {
-        await deleteUser(userCredential.user); // Rollback user creation
+        localStorage.setItem("otpEmail", registerUser.email); // fallback
+        setMessage("Signup successful! A verification email has been sent.");
+        setShouldRedirect(true); // trigger navigation in useEffect
       }
+    } catch (error) {
+      console.error("Signup error:", error);
       setError(error.message);
+
+      if (userCredential?.user) {
+        await deleteUser(userCredential.user); // rollback
+      }
+    } finally {
+      setLoading(false);
     }
   };
+
+  // ✅ Navigate after OTP success
+  useEffect(() => {
+    if (shouldRedirect) {
+      navigate("/verify-otp", { state: { email: registerUser.email } });
+    }
+  }, [shouldRedirect, navigate, registerUser.email]);
+
+  
+  
   return (
     <div className="min-h-[80vh] flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white rounded-lg shadow-lg overflow-hidden">
@@ -203,6 +218,7 @@ const SignUp = ({ switchForm,onSuccess }) => {
           {error && <div className="error-message text-red-600">{error}</div>}
 
           {/* Submit Button */}
+          
           <button
             type="submit"
             disabled={loading}

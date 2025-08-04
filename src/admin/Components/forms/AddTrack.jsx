@@ -230,8 +230,7 @@ const handleCropSave = async () => {
             className="w-full px-3 py-2 border border-gray-200 rounded-md"
           />
           </label>
-
-          <div>
+          {/* <div>
             <label htmlFor="toolInput" className="block mb-1 font-semibold">Tools / Technologies</label>
             <div className="flex gap-2">
               <input
@@ -271,7 +270,9 @@ const handleCropSave = async () => {
                 </span>
               ))}
             </div>
-          </div>
+          </div>*/} 
+
+         
  <label className="block">
     <span className="text-sm text-gray-700 font-medium mb-1 block">Picture</span>
         
