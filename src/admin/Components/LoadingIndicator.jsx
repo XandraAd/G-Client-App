@@ -1,9 +1,18 @@
-function LoadingIndicator() {
+const LoadingIndicator = ({ fullPage = true }) => {
+  if (fullPage) {
+    return (
+      <div className="fixed top-0 left-0 w-full h-screen bg-blue-700 bg-opacity-40 flex items-center justify-center z-50">
+        <div className="w-12 h-12 border-4 border-t-transparent border-white rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  // Inline version for component-level loading
   return (
-    <div className="fixed top-0 left-0 w-full h-screen bg-blue-700 bg-opacity-40 flex items-center justify-center z-50">
-      <div className="w-12 h-12 border-4 border-t-transparent border-white rounded-full animate-spin"></div>
+    <div className="flex items-center justify-center p-4">
+      <div className="w-8 h-8 border-4 border-t-transparent border-blue-500 rounded-full animate-spin"></div>
     </div>
   );
-}
+};
 
 export default LoadingIndicator;

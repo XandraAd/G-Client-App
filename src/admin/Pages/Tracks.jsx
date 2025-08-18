@@ -110,19 +110,19 @@ const Tracks = () => {
          refreshTracks={fetchTracks}/>
       </ReactModal>
 
-      <section className="py-2 min-h-full lg:min-h-[300px] mb-6  ">
+      <section className="py-2 min-h-full lg:min-h-[300px] mb-2  ">
         <h4 className="text-[20px] font-semibold text-gray-900 mb-2">Tracks</h4>
 
-        <div className="my-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-16">
+        <div className="my-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 ">
           {filteredTracks.map((track) => {
             const bgImgKey = track.bgImg?.replace(".png", "");
             const bgImg = imageMap[bgImgKey] || track.bgImg;
           return (
             <Link key={track.id} to={`${track.id}`}>
 
-            <div key={track.id} className="lg:w-[200px] rounded-xl shadow-lg flex  flex-col justify-between relative overflow-hidden  h-[300px]">
+            <div key={track.id} className=" rounded-xl shadow-lg flex flex-col justify-between relative overflow-hidden  h-[400px]">
               <div
-                className="rounded-t-md w-[256px] h-[400px] bg-no-repeat bg-cover min-w-full"
+                className="rounded-t-md h-full bg-no-repeat bg-cover "
                 style={{ backgroundImage: `url(${bgImg})` }}
               >
                 <p className="text-xs mt-2 px-2 py-1 bg-white rounded absolute right-2">
@@ -130,9 +130,9 @@ const Tracks = () => {
                 </p>
               </div>
 
-              <div className="relative z-10 text-black px-2 pb-3 h-[200px]">
+              <div className="relative z-10 text-black px-2 pb-3 h-[220px] ">
                 <h3 className="mt-2 text-[18px] font-semibold">{track.title}</h3>
-                <p className="text-sm text-gray-500 overflow-hidden line-clamp-3">{track.description}</p>
+                <p className="text-sm text-gray-500 overflow-hidden line-clamp-3 h-[60px]">{track.description}</p>
                 <div className="flex items-center mt-2 text-gray-500 font-normal text-[14px]">
                   <img src={CalendarIcon} alt="calendar" className="w-4 h-4" />
                   <p className="ml-2">{track.duration}</p>
@@ -142,31 +142,34 @@ const Tracks = () => {
                   <p className="ml-2">{track.instructor}</p>
                 </div>
 
-                <div className="mt-2">
-                  {track.program.map((tech) => {
-                    const label = typeof tech === "string" ? tech : tech.label;
-                    const bgColor = tech.bgColor || "#E0F2FE";
-                    const textColor = tech.textColor || "#1E3A8A";
-                    return (
-                      <span
-                        key={label}
-                        style={{
-                          backgroundColor: bgColor,
-                          color: textColor,
-                          fontSize: "10px",
-                          padding: "4px 8px",
-                          borderRadius: "9999px",
-                          marginRight: "6px",
-                          display: "inline-block",
-                          marginBottom: "10px",
-                          marginInlineStart: "4px",
-                        }}
-                      >
-                        {label}
-                      </span>
-                    );
-                  })}
-                </div>
+              {/* Tags */}
+<div className="mt-2">
+  {Array.isArray(track.program) &&
+    track.program.map((tech) => {
+      const label = typeof tech === "string" ? tech : tech.label;
+      const bgColor = tech.bgColor || "#E0F2FE";
+      const textColor = tech.textColor || "#1E3A8A";
+      return (
+        <span
+          key={label}
+          style={{
+            backgroundColor: bgColor,
+            color: textColor,
+            fontSize: "10px",
+            padding: "4px 8px",
+            borderRadius: "9999px",
+            marginRight: "6px",
+            display: "inline-block",
+            marginBottom: "10px",
+            marginInlineStart: "4px",
+          }}
+        >
+          {label}
+        </span>
+      );
+    })}
+</div>
+
               </div>
             </div>
             </Link>

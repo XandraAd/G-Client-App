@@ -1,42 +1,29 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { CiSearch } from "react-icons/ci";
-import AddLearner from "../Components/forms/AddLearners"; // ✅ Use correct form
-import ReactModal from "react-modal";
-import { FiEdit2 } from "react-icons/fi";
-import { MdDeleteOutline } from "react-icons/md";
+import { MdOutlineRemoveRedEye } from "react-icons/md";
+
+const itemsPerPage = 5;
 
 const Learners = () => {
   const [query, setQuery] = useState("");
-  const [filteredLearners, setFilteredLearners] = useState([]);
   const [learners, setLearners] = useState([]);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [selectedLearner, setSelectedLearner] = useState(null);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-
-  const itemsPerPage = 8;
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = Math.ceil(filteredLearners.length / itemsPerPage);
 
-  const handlePageChange = (page) => {
-    if (page >= 1 && page <= totalPages) setCurrentPage(page);
-  };
-
-  const paginatedLearners = filteredLearners.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
+  // Fetch ONLY enrolled learners
   const fetchLearners = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/learners");
-      const sorted = res.data.sort(
-        (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
-      );
-      setLearners(sorted);
-      setFilteredLearners(sorted);
-    } catch (error) {
-      console.error("Failed to fetch learners:", error);
+      setLoading(true);
+      setError("");
+      const res = await axios.get("http://localhost:5000/api/learners", { params: { enrolled: 1 } });
+      setLearners(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to fetch learners");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -44,182 +31,124 @@ const Learners = () => {
     fetchLearners();
   }, []);
 
-  const handleChange = (e) => {
-    const searchQuery = e.target.value.trim().toLowerCase();
-    setQuery(searchQuery);
+  // Search (name/email)
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return learners;
+    return learners.filter((l) =>
+      (l.learnerName || "").toLowerCase().includes(q) || (l.email || "").toLowerCase().includes(q)
+    );
+  }, [query, learners]);
 
-    const result = learners.filter((learner) => {
-      return (
-        learner.learnerName?.toLowerCase().includes(searchQuery) ||
-        learner.email?.toLowerCase().includes(searchQuery)
-      );
-    });
+  const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
+  const paginated = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filtered.slice(start, start + itemsPerPage);
+  }, [filtered, currentPage]);
 
-    setFilteredLearners(result);
-  };
-
-  const handleEdit = (learner) => {
-    setSelectedLearner(learner);
-    setIsEditModalOpen(true);
-  };
-
-  const handleDelete = async (learnerId) => {
-    try {
-      await axios.delete(`http://localhost:5000/api/learners/${learnerId}`);
-      const updated = learners.filter((l) => l.id !== learnerId);
-      setLearners(updated);
-      setFilteredLearners(updated);
-    } catch (error) {
-      console.error("Failed to delete learner:", error);
-    }
-  };
+  useEffect(() => {
+    // If search shrinks the list, make sure current page stays valid
+    if (currentPage > totalPages) setCurrentPage(1);
+  }, [totalPages, currentPage]);
 
   return (
     <>
       <h4 className="mt-10 text-[24px] font-semibold">Manage Learners</h4>
       <p className="text-gray-400 text-[18px] font-normal">
-        Filter, sort, and access detailed Learner Profile
+        Filter, sort, and access detailed learner profiles
       </p>
 
-      <div className="flex items-center justify-between gap-2 my-4">
-        <button
-          onClick={() => setIsAddModalOpen(true)}
-          className="bg-[#01589A] text-white h-10 w-[30%] rounded-xl capitalize text-[16px] font-semibold leading-[20px]"
-        >
-          + Add Learner
-        </button>
-
+      <div className="relative my-4 w-full max-w-md">
+        <CiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
         <input
           type="text"
           value={query}
-          onChange={handleChange}
-          placeholder="Search learner..."
-          className="border border-gray-300 pl-6 md:pl-[60px] lg:pl-12 py-2 rounded-lg w-1/2 max-w-md"
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search learner by name or email..."
+          className="border border-gray-300 pl-10 py-2 rounded-lg w-full"
         />
-        <CiSearch className="absolute left-[190px] md:left-[400px] lg:left-[650px] xl:left-[430px] top-[15.2rem] md:top-[13.5rem] lg:top-[11.5rem] transform -translate-y-1/2 text-gray-400 text-lg" />
       </div>
 
-      {/* Add Learner Modal */}
-      <ReactModal
-        isOpen={isAddModalOpen}
-        onRequestClose={() => setIsAddModalOpen(false)}
-        className="rounded-lg p-6 w-full max-w-md mx-auto mt-20 outline-none relative"
-        contentLabel="Add Learner"
-        overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-      >
-        <AddLearner onClose={() => setIsAddModalOpen(false)} refreshLearners={fetchLearners} />
-      </ReactModal>
+      {loading && <p className="text-gray-500">Loading enrolled learners…</p>}
+      {error && <p className="text-red-600">{error}</p>}
 
-      {/* Edit Learner Modal */}
-      <ReactModal
-        isOpen={isEditModalOpen}
-        onRequestClose={() => {
-          setIsEditModalOpen(false);
-          setSelectedLearner(null);
-        }}
-        className="rounded-lg p-6 w-full max-w-md mx-auto mt-20 outline-none relative"
-        contentLabel="Edit Learner"
-        overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-      >
-        <AddLearner
-          onClose={() => {
-            setIsEditModalOpen(false);
-            setSelectedLearner(null);
-          }}
-          refreshLearners={fetchLearners}
-          existingLearner={selectedLearner}
-          isEditing={true}
-        />
-      </ReactModal>
+      {!loading && !error && (
+        <section className="py-6 min-h-full mb-10">
+          <div className="grid grid-cols-6 text-sm font-medium text-gray-600 mb-2 px-4">
+            <p>Learners</p>
+            <p className="text-center">Courses</p>
+            <p className="text-center">Date Joined</p>
+            <p className="text-center">Amount</p>
+            <p className="text-center">Gender</p>
+            <p className="text-center"></p>
+          </div>
 
-      {/* Learners Table */}
-      <section className="py-6 min-h-full mb-10">
-        <div className="grid grid-cols-6 text-sm font-medium text-gray-600 mb-2 px-4">
-          <p>Learner</p>
-          <p className="text-center">Email</p>
-          <p className="text-center">Date Joined</p>
-          <p className="text-center">Amount</p>
-          <p className="text-center">Gender</p>
-          <p className="text-center"></p>
-        </div>
+          {filtered.length === 0 ? (
+            <p className="text-gray-500 mt-6 text-center">No enrolled learners found.</p>
+          ) : (
+            <div className="space-y-4">
+              {paginated.map((l) => (
+                <div key={l.id} className="grid grid-cols-6 items-center px-4 py-3 shadow-sm rounded-lg bg-white hover:shadow-md transition">
+                  <div className="text-gray-800 font-semibold truncate">{l.learnerName || "—"}</div>
+                  <div className="text-center text-sm text-gray-600">
+                    {Array.isArray(l.courses) ? `${l.courses.length} course${l.courses.length === 1 ? "" : "s"}` : "—"}
+                  </div>
+                  <div className="text-center text-sm text-gray-500">
+                    {l.dateJoined ? new Date(l.dateJoined).toLocaleDateString() : (l.createdAt ? new Date(l.createdAt).toLocaleDateString() : "—")}
+                  </div>
+                  <div className="text-center text-sm text-gray-700">{typeof l.amount === "number" ? `$${l.amount.toFixed(2)}` : "—"}</div>
+                  <div className="text-center text-sm text-gray-600">{l.gender || "—"}</div>
+                  <div className="flex justify-center gap-2">
+                    <button className="p-2 rounded-lg hover:bg-gray-100" title="View">
+                      <MdOutlineRemoveRedEye />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
-        {filteredLearners.length === 0 ? (
-          <p className="text-gray-500 mt-6 text-center">No matching learners found.</p>
-        ) : (
-          <div className="space-y-4">
-            {paginatedLearners.map((learner) => (
-              <div
-                key={learner.id}
-                className="grid grid-cols-6 items-center px-4 py-3 shadow-sm rounded-lg bg-white hover:shadow-md transition"
+          {/* Pagination */}
+          {filtered.length > 0 && (
+            <div className="flex justify-between items-center mt-6 shadow-sm border border-gray-300 rounded-md overflow-hidden">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className={`px-3 py-1 text-sm font-medium border-r border-gray-300 ${
+                  currentPage === 1 ? "text-gray-400 cursor-not-allowed bg-gray-100" : "text-blue-600 hover:bg-blue-50"
+                }`}
               >
-                <div className="text-gray-800 font-semibold">{learner.learnerName}</div>
-                <div className="text-center text-sm text-gray-600">{learner.email}</div>
-                <div className="text-center text-sm text-gray-500">
-                  {learner.joinDate ? new Date(learner.joinDate).toLocaleDateString() : "—"}
-                </div>
-                <div className="text-center text-sm text-gray-700">${learner.amount || "—"}</div>
-                <div className="text-center text-sm text-gray-600">{learner.gender || "—"}</div>
-                <div className="flex justify-center gap-2">
-                  <FiEdit2
-                    className="text-green-700 text-[20px] p-1 rounded-full hover:bg-green-100 cursor-pointer"
-                    onClick={() => handleEdit(learner)}
-                  />
-                  <MdDeleteOutline
-                    className="text-red-600 text-[20px] p-1 rounded-full hover:bg-red-100 cursor-pointer"
-                    onClick={() => handleDelete(learner.id)}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+                ← Prev
+              </button>
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex justify-center items-center gap-2 mt-6 border">
-            <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className={`px-3 py-1 rounded-md border ${
-                currentPage === 1
-                  ? "text-gray-400 border-gray-300 cursor-not-allowed"
-                  : "text-blue-600 border-blue-500 hover:bg-blue-50"
-              }`}
-            >
-              ← Prev
-            </button>
+              {Array.from({ length: totalPages }).map((_, idx) => {
+                const page = idx + 1;
+                return (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`px-3 py-1 text-sm font-medium border-r border-gray-300 ${
+                      currentPage === page ? "bg-blue-600 text-white" : "text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
 
-            {[...Array(totalPages)].map((_, idx) => {
-              const page = idx + 1;
-              return (
-                <button
-                  key={page}
-                  onClick={() => handlePageChange(page)}
-                  className={`px-3 py-1 rounded-md text-sm font-medium border ${
-                    currentPage === page
-                      ? "bg-blue-600 text-white border-blue-600"
-                      : "text-gray-600 border-gray-300 hover:bg-gray-100"
-                  }`}
-                >
-                  {page}
-                </button>
-              );
-            })}
-
-            <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className={`px-3 py-1 rounded-md border ${
-                currentPage === totalPages
-                  ? "text-gray-400 border-gray-300 cursor-not-allowed"
-                  : "text-blue-600 border-blue-500 hover:bg-blue-50"
-              }`}
-            >
-              Next →
-            </button>
-          </div>
-        )}
-      </section>
+              <button
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className={`px-3 py-1 text-sm font-medium ${
+                  currentPage === totalPages ? "text-gray-400 cursor-not-allowed bg-gray-100" : "text-blue-600 hover:bg-blue-50"
+                }`}
+              >
+                Next →
+              </button>
+            </div>
+          )}
+        </section>
+      )}
     </>
   );
 };

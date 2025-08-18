@@ -5,6 +5,7 @@ const AddInvoices = ({ onClose, refreshInvoices, existingInvoice, isEditing }) =
   const [learners, setLearners] = useState([]);
   const [invoiceData, setInvoiceData] = useState({
     learnerId: existingInvoice?.learnerId || "",
+    learnerName:existingInvoice?.learnerName || "",
     amount: existingInvoice?.amount || "",
     dueDate: existingInvoice?.dueDate || "",
     status: existingInvoice?.status || "Pending",
@@ -69,7 +70,7 @@ const AddInvoices = ({ onClose, refreshInvoices, existingInvoice, isEditing }) =
               <option value="">Select a learner</option>
               {learners.map((learner) => (
                 <option key={learner.id} value={learner.id}>
-                  {learner.name || learner.email}
+                  {learner.learnerName || learner.email}
                 </option>
               ))}
             </select>

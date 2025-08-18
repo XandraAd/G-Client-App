@@ -44,18 +44,15 @@ const AddCourses = ({ onClose, refreshTracks, existingCourse, isEditing }) => {
 
 const getRelevantIcons = (title) => {
   const lowerTitle = title.toLowerCase();
-  let matchedTools = [];
 
-  for (const [tools] of Object.entries(courseIconMap)) {
-    tools.forEach((tool) => {
-      if (lowerTitle.includes(tool.label.toLowerCase()) || lowerTitle.includes(tool.value.toLowerCase())) {
-        matchedTools.push(tool);
-      }
-    });
-  }
-
-  return matchedTools;
+  return Object.values(courseIconMap)
+    .flat()
+    .filter((tool) =>
+      lowerTitle.includes(tool.label.toLowerCase()) ||
+      lowerTitle.includes(tool.value.toLowerCase())
+    );
 };
+
 
 
   const handleSubmit = async (e) => {

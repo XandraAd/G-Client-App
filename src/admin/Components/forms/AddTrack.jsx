@@ -13,7 +13,7 @@ const AddTracks = ({ onClose, setTracks, refreshTracks }) => {
   });
 
   const [tools, setTools] = useState([]);
-  const [toolInput, setToolInput] = useState("");
+  
 
   const [imageSrc, setImageSrc] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
@@ -23,28 +23,9 @@ const AddTracks = ({ onClose, setTracks, refreshTracks }) => {
   const [showCropModal, setShowCropModal] = useState(false);
   const [message, setMessage] = useState("");
 
-  const generateRandomColors = () => {
-    const colors = [
-      { bgColor: "#FFF4ED", textColor: "#B93815" },
-      { bgColor: "#FFF1F3", textColor: "#C01048" },
-      { bgColor: "#E0F2FE", textColor: "#1E3A8A" },
-      { bgColor: "#FCE7F3", textColor: "#9D174D" },
-      { bgColor: "#D1FAE5", textColor: "#065F46" },
-      { bgColor: "#FEE2E2", textColor: "#991B1B" },
-    ];
-    return colors[Math.floor(Math.random() * colors.length)];
-  };
+ 
 
-  const handleAddTool = () => {
-    if (toolInput.trim() === "") return;
-    const { bgColor, textColor } = generateRandomColors();
-    setTools([...tools, { label: toolInput, bgColor, textColor }]);
-    setToolInput("");
-  };
 
-  const handleDeleteTool = (index) => {
-    setTools((prev) => prev.filter((_, i) => i !== index));
-  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -121,7 +102,7 @@ const handleCropSave = async () => {
       console.log("🚀 Payload being sent:", newTrack);
 
       setTools([]);
-      setToolInput("");
+    
       setPreviewImage(null);
       setMessage("Track added successfully!");
       onClose();
@@ -230,47 +211,7 @@ const handleCropSave = async () => {
             className="w-full px-3 py-2 border border-gray-200 rounded-md"
           />
           </label>
-          {/* <div>
-            <label htmlFor="toolInput" className="block mb-1 font-semibold">Tools / Technologies</label>
-            <div className="flex gap-2">
-              <input
-                id="toolInput"
-                type="text"
-                value={toolInput}
-                onChange={(e) => setToolInput(e.target.value)}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-md"
-              />
-              <button
-                type="button"
-                onClick={handleAddTool}
-                className="px-3 py-2 bg-blue-600 text-white rounded-md"
-              >
-                Add
-              </button>
-            </div>
-
-            <div className="mt-2 flex flex-wrap gap-2">
-              {tools.map((tool, index) => (
-                <span
-                  key={`${tool.label}-${tool.bgColor}-${tool.textColor}`}
-                  style={{
-                    backgroundColor: tool.bgColor,
-                    color: tool.textColor,
-                  }}
-                  className="px-3 py-1 rounded-full text-sm flex items-center gap-1"
-                >
-                  {tool.label}
-                  <button
-                    type="button"
-                    className="ml-2 text-xs text-red-500 hover:text-red-700"
-                    onClick={() => handleDeleteTool(index)}
-                  >
-                    ×
-                  </button>
-                </span>
-              ))}
-            </div>
-          </div>*/} 
+         
 
          
  <label className="block">

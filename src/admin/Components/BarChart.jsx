@@ -10,7 +10,7 @@ import {
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
-const BarChart = () => {
+const BarChart = ({ invoices, learners, tracks }) => {
   const revenues = [4000, 3000, 6000, 3000, 3000, 3000];
 
   const colors = ["#c9ddff", "#8cb4fa", "#4784ee", "#256fff", "#005cff", "#0038a4",];

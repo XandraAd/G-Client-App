@@ -1,71 +1,129 @@
-import { auth } from "./Firebase";
+import { auth, db } from "./Firebase";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  // GoogleAuthProvider,
-  // signInWithPopup,
-  
   sendPasswordResetEmail,
+  updateProfile,
+  deleteUser
 } from "firebase/auth";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 
-// create user
-export const signUp = async (email, password) => {
+// ----------------------
+// Regular user signup
+// ----------------------
+export const signUp = async (email, password, learnerData) => {
   const userCredential = await createUserWithEmailAndPassword(
     auth,
     email,
     password
   );
- 
+
+  await setDoc(doc(db, "users", userCredential.user.uid), {
+    email,
+    firstName: learnerData.firstName || "",
+    lastName: learnerData.lastName || "",
+    contact: learnerData.contact || "",
+    isLearner: true,
+    createdAt: new Date()
+  });
+
   return userCredential;
 };
 
-// Login user
-export const signIn = async (email, password) => {
+// ----------------------
+// Admin signup
+// ----------------------
+export const adminSignUp = async (email, password, adminData) => {
+  let userCredential;
   try {
-    const userCredential = await signInWithEmailAndPassword(
-      auth,
+    userCredential = await createUserWithEmailAndPassword(auth, email, password);
+
+    await updateProfile(userCredential.user, {
+      displayName: `${adminData.firstName} ${adminData.lastName}`
+    });
+
+    await setDoc(doc(db, "users", userCredential.user.uid), {
       email,
-      password
-    );
-    if (!userCredential?.user) {
-      throw new Error("auth/user-not-found");
-    }
+      firstName: adminData.firstName,
+      lastName: adminData.lastName,
+      contact: adminData.contact,
+      isAdmin: true,
+      createdAt: new Date()
+    });
+
     return userCredential;
   } catch (error) {
-    console.error("Sign in error:", error);
-    throw error; // Re-throw the error for handling in the component
+    console.error("Admin signup error:", error);
+    if (userCredential?.user) {
+      try {
+        await deleteUser(userCredential.user);
+      } catch (deleteError) {
+        console.error("Error cleaning up user:", deleteError);
+      }
+    }
+    throw error;
   }
 };
 
+// ----------------------
+// Admin login
+// ----------------------
+export const adminSignIn = async (email, password) => {
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const uid = userCredential.user.uid;
+    const userDoc = await getDoc(doc(db, "users", uid));
 
-// Logout User
+    if (!userDoc.exists() || !userDoc.data().isAdmin) {
+      await auth.signOut();
+      throw new Error("User is not an admin");
+    }
+
+    return userCredential;
+  } catch (error) {
+    console.error("Admin sign in error:", error);
+    throw error;
+  }
+};
+
+// ----------------------
+// Learner login
+// ----------------------
+export const learnerSignIn = async (email, password) => {
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const uid = userCredential.user.uid;
+    const userDoc = await getDoc(doc(db, "users", uid));
+
+    if (!userDoc.exists() || !userDoc.data().isLearner) {
+      await auth.signOut();
+      throw new Error("User is not a learner");
+    }
+
+    return userCredential;
+  } catch (error) {
+    console.error("Learner sign in error:", error);
+    throw error;
+  }
+};
+
+// ----------------------
+// Logout
+// ----------------------
 export const logout = () => {
   return auth.signOut();
 };
 
-// resetPassword with custom redirect
+// ----------------------
+// Password reset
+// ----------------------
 export const resetPassword = async (email) => {
   const actionCodeSettings = {
-    url: `${window.location.origin}/new-password`, // route that handles the password reset form
-    handleCodeInApp: true,
+    url: `${window.location.origin}/new-password`,
+    handleCodeInApp: true
   };
-
   return sendPasswordResetEmail(auth, email, actionCodeSettings);
 };
-
-{/**export const verifyEmail = async () => {
-  const user = auth.currentUser;
-  if (user) {
-    const actionCodeSettings = {
-      // This should match a route in your app that can handle the verification mode
-      url: `${window.location.origin}/auth-action`, // ✅ This route will check ?mode=verifyEmail
-      handleCodeInApp: true,
-    };
-
-    return sendEmailVerification(user, actionCodeSettings);
-  } else {
-    throw new Error("No user is currently signed in.");
-  } */}
 
 
 

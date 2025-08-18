@@ -1,53 +1,98 @@
-
 import admin from 'firebase-admin';
-import {getFirestore,Timestamp } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-//import fs from 'fs';
+import fs from 'fs';
 
 dotenv.config();
 
-// ======== DEBUG HELPER ======== //
-const debugKey = (key) => {
-  console.log('\n--- FIREBASE PRIVATE KEY DEBUG ---');
-  console.log('Key Type:', typeof key);
-  console.log('Key Length:', key.length);
-  console.log('First 50 chars:', key.substring(0, 50).replace(/\n/g, '\\n'));
-  console.log('Last 50 chars:', key.substring(key.length - 50).replace(/\n/g, '\\n'));
-  console.log('Escaped \\n count:', (key.match(/\\n/g) || []).length);
-  console.log('Actual newline count:', (key.match(/\n/g) || []).length);
-  console.log('Has BEGIN marker:', key.includes('-----BEGIN PRIVATE KEY-----'));
-  console.log('Has END marker:', key.includes('-----END PRIVATE KEY-----'));
-  console.log('--------------------------------\n');
+// ======== ENVIRONMENT VALIDATION ======== //
+const validateFirebaseConfig = () => {
+  const requiredVars = [
+    'FIREBASE_PROJECT_ID',
+    'FIREBASE_CLIENT_EMAIL',
+    'FIREBASE_PRIVATE_KEY'
+  ];
+
+  const missingVars = requiredVars.filter(varName => !process.env[varName]);
+  if (missingVars.length > 0) {
+    throw new Error(`Missing Firebase config: ${missingVars.join(', ')}`);
+  }
 };
 
-debugKey(process.env.FIREBASE_PRIVATE_KEY)
+// ======== PRIVATE KEY PROCESSING ======== //
+const processPrivateKey = (key) => {
+  if (!key) throw new Error('FIREBASE_PRIVATE_KEY is undefined');
+  
+  // Convert escaped newlines to actual newlines
+  const processedKey = key.replace(/\\n/g, '\n');
+  
+  // Validate key format
+  if (!processedKey.includes('-----BEGIN PRIVATE KEY-----') || 
+      !processedKey.includes('-----END PRIVATE KEY-----')) {
+    throw new Error('Invalid private key format');
+  }
+  
+  return processedKey;
+};
 
-// Ensure correct path resolution
-//const __filename = fileURLToPath(import.meta.url);
-//////const __dirname = path.dirname(__filename);
+// ======== FIREBASE INITIALIZATION ======== //
+let db;
+let bucket;
 
-// Load service account JSON securely
-//const serviceAccountPath = path.join(__dirname, '../server/serviceAccountKey.json'); // ✅ Adjust this
-//const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/gm, '\n');
+const initializeFirebase = () => {
+  try {
+    validateFirebaseConfig();
+    
+    const privateKey = processPrivateKey(process.env.FIREBASE_PRIVATE_KEY);
 
-// Initialize Firebase Admin
+    if (!admin.apps.length) {
+      admin.initializeApp({
+        credential: admin.credential.cert({
+          projectId: process.env.FIREBASE_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          privateKey: privateKey
+        }),
+        storageBucket: process.env.FIREBASE_STORAGE_BUCKET || 'g-client-app.appspot.com',
+        databaseURL: `https://${process.env.FIREBASE_PROJECT_ID}.firebaseio.com`
+      });
 
-// Initialize Firebase Admin (with optional Storage Bucket)
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: privateKey
-    }),
-    storageBucket: process.env.FIREBASE_STORAGE_BUCKET || 'g-client-app.appspot.com' // Default bucket
-  });
-}
+      console.log('🔥 Firebase Admin initialized successfully');
+    }
 
-const db = getFirestore();
-const bucket = admin.storage().bucket();
+    db = getFirestore();
+    bucket = admin.storage().bucket();
+    
+    return { db, bucket };
+  } catch (error) {
+    console.error('❌ Firebase initialization failed:', error);
+    process.exit(1);
+  }
+};
 
-export { db, Timestamp,bucket };
+// ======== FIRESTORE RULES DEPLOYMENT ======== //
+const deployFirestoreRules = async () => {
+  try {
+    const __dirname = path.dirname(fileURLToPath(import.meta.url));
+    const rulesPath = path.join(__dirname, '../../firestore.rules');
+    
+    if (!fs.existsSync(rulesPath)) {
+      throw new Error('firestore.rules file not found');
+    }
+
+    const rules = fs.readFileSync(rulesPath, 'utf8');
+    await admin.securityRules().releaseFirestoreRuleset(
+      admin.securityRules().createRuleset(rules)
+    );
+    
+    console.log('🛡️ Firestore rules deployed successfully');
+  } catch (error) {
+    console.error('❌ Firestore rules deployment failed:', error);
+  }
+};
+
+// Initialize Firebase and export
+initializeFirebase();
+
+export { db, Timestamp, bucket, deployFirestoreRules };

@@ -41,7 +41,7 @@ const Navigation = ({ onOpen, user, handleLogout }) => {
         <div className="flex items-center gap-1">
            <button
                     type="button"
-                   onClick={() => navigate("/dashboard/manage-profile")}
+                   onClick={() => navigate("/admin/manage-profile")}
                     className="focus:outline-none"
                     aria-label="Edit profile"
                   >

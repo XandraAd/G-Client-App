@@ -44,18 +44,20 @@ const Invoices = () => {
     fetchInvoices();
   }, []);
 
-  const handleChange = (e) => {
+  const handleSearch = (e) => {
     const searchQuery = e.target.value.trim().toLowerCase();
     setQuery(searchQuery);
 
     const result = invoices.filter((inv) => {
       return (
         inv.learnerName?.toLowerCase().includes(searchQuery) ||
-        inv.email?.toLowerCase().includes(searchQuery)
+        inv.email?.toLowerCase().includes(searchQuery) ||
+         inv.status?.toLowerCase().includes(searchQuery)
       );
     });
 
     setFilteredInvoices(result);
+    setCurrentPage(1); 
   };
 
   const handleEdit = (invoice) => {
@@ -86,7 +88,7 @@ const Invoices = () => {
         <input
           type="text"
           value={query}
-          onChange={handleChange}
+          onChange={handleSearch}
           placeholder="Search invoice..."
           className="border border-gray-300 pl-6 lg:pl-12 py-2 rounded-lg w-1/2 max-w-md"
         />
@@ -99,38 +101,28 @@ const Invoices = () => {
       </div>
 
       <ReactModal
-        isOpen={isAddInvoiceModalOpen}
-        onRequestClose={() => setIsAddInvoiceModalOpen(false)}
+        isOpen={isAddInvoiceModalOpen || isEditModalOpen}
+        onRequestClose={() =>{ setIsAddInvoiceModalOpen(false);
+           setIsEditModalOpen(false);
+          setSelectedInvoice(null);
+        }}
         className="rounded-lg p-6 w-full max-w-md mx-auto mt-20 outline-none relative"
         contentLabel="Add New Invoice"
         overlayClassName="fixed inset-0  bg-opacity-50 flex items-center justify-center z-50"
       >
         <AddInvoices
-          onClose={() => setIsAddInvoiceModalOpen(false)}
-          refreshInvoices={fetchInvoices}
-        />
-      </ReactModal>
-
-      <ReactModal
-        isOpen={isEditModalOpen}
-        onRequestClose={() => {
-          setIsEditModalOpen(false);
-          setSelectedInvoice(null);
-        }}
-        className="rounded-lg p-6 w-full max-w-md mx-auto mt-20 outline-none relative"
-        contentLabel="Edit Invoice"
-        overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-      >
-        <AddInvoices
           onClose={() => {
+            setIsAddInvoiceModalOpen(false);
             setIsEditModalOpen(false);
             setSelectedInvoice(null);
           }}
-          refreshInvoices={fetchInvoices}
+           refreshInvoices={fetchInvoices}
           existingInvoice={selectedInvoice}
-          isEditing={true}
+          isEditing={isEditModalOpen}
         />
       </ReactModal>
+
+    
 
       <section className="py-6 min-h-full mb-10">
         <div className="grid grid-cols-6 text-sm font-medium text-gray-600 mb-2 px-4">
@@ -149,38 +141,42 @@ const Invoices = () => {
           </p>
         ) : (
           <div className="space-y-4">
-            {paginatedInvoices.map((invoice) => (
-              <div
-                key={invoice.id}
-                className="grid grid-cols-5 items-center px-4 py-3 shadow-sm rounded-lg bg-white hover:shadow-md transition"
-              >
-                <div className="text-gray-800 font-semibold">{invoice.learnerName}</div>
-                <div className="text-center text-sm text-gray-600">{invoice.email}</div>
-                <div className="text-center text-sm text-gray-500">
-                  {invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString() : "—"}
+            {paginatedInvoices.map((invoice) => {
+              let statusClass = "";
+              if (invoice.status === "Paid") {
+                statusClass = "bg-green-100 text-green-800";
+              } else if (invoice.status === "Overdue") {
+                statusClass = "bg-red-100 text-red-800";
+              } else {
+                statusClass = "bg-yellow-100 text-yellow-800";
+              }
+              return (
+                <div
+                  key={invoice.id}
+                  className="grid grid-cols-5 items-center px-4 py-3 shadow-sm rounded-lg bg-white hover:shadow-md transition"
+                >
+                  <div className="text-gray-800 font-semibold">{invoice.learnerName}</div>
+                  <div className="text-center text-sm text-gray-600">{invoice.email}</div>
+                  <div className="text-center text-sm text-gray-500">
+                    {invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString() : "—"}
+                  </div>
+                  <div className="text-center text-sm text-gray-700">${invoice.amount}</div>
+                  <div className="flex justify-center gap-2">
+                    <span className={`text-sm font-medium rounded px-2 py-1 ${statusClass}`}>
+                      {invoice.status}
+                    </span>
+                    <FiEdit2
+                      className="text-green-700 text-[20px] p-1 rounded-full hover:bg-green-100 cursor-pointer"
+                      onClick={() => handleEdit(invoice)}
+                    />
+                    <MdDeleteOutline
+                      className="text-red-600 text-[20px] p-1 rounded-full hover:bg-red-100 cursor-pointer"
+                      onClick={() => handleDelete(invoice.id)}
+                    />
+                  </div>
                 </div>
-                <div className="text-center text-sm text-gray-700">${invoice.amount}</div>
-                <div className="flex justify-center gap-2">
-                  <span className={`text-sm font-medium rounded px-2 py-1 ${
-                    invoice.status === "Paid"
-                      ? "bg-green-100 text-green-800"
-                      : invoice.status === "Overdue"
-                      ? "bg-red-100 text-red-800"
-                      : "bg-yellow-100 text-yellow-800"
-                  }`}>
-                    {invoice.status}
-                  </span>
-                  <FiEdit2
-                    className="text-green-700 text-[20px] p-1 rounded-full hover:bg-green-100 cursor-pointer"
-                    onClick={() => handleEdit(invoice)}
-                  />
-                  <MdDeleteOutline
-                    className="text-red-600 text-[20px] p-1 rounded-full hover:bg-red-100 cursor-pointer"
-                    onClick={() => handleDelete(invoice.id)}
-                  />
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 

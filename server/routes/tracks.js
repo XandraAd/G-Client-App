@@ -1,24 +1,20 @@
 //express routes
+import express from "express";
+import { Track } from "../models/Tracks.js";
+import { db } from "../firebase-admin.js";
+import { cloudinary } from "../utils/cloudinary.js";
 
-import express from "express"
-
-import {Track} from "../models/Tracks.js"
-import {db}  from "../firebase-admin.js";
-
-import { cloudinary } from "../utils/cloudinary.js"; 
 
 
 const router = express.Router();
 
-
-
 // GET all tracks
-router.get('/', async (req, res) => {
+router.get("/", async (req, res) => {
   try {
     const snapshot = await Track.get();
-    const tracks = snapshot.docs.map(doc => ({
+    const tracks = snapshot.docs.map((doc) => ({
       id: doc.id,
-      ...doc.data()
+      ...doc.data(),
     }));
     res.status(200).json(tracks);
   } catch (error) {
@@ -27,20 +23,15 @@ router.get('/', async (req, res) => {
   }
 });
 
-
-
 // GET a single track by ID
-router.get('/:id', async (req, res) => {
+// GET single track by ID
+router.get("/:id", async (req, res) => {
   const { id } = req.params;
-
   try {
-    const docRef = db.collection("tracks").doc(id);
-    const doc = await docRef.get();
-
+    const doc = await db.collection("tracks").doc(id).get();
     if (!doc.exists) {
       return res.status(404).json({ message: "Track not found" });
     }
-
     res.status(200).json({ id: doc.id, ...doc.data() });
   } catch (error) {
     console.error("Error fetching track:", error);
@@ -62,8 +53,6 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-
-
 // ✅ UPDATE a track
 router.put("/:id", async (req, res) => {
   const { id } = req.params;
@@ -78,45 +67,42 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-
-
-
-
 // POST add new track
-router.post('/', async (req, res) => {
+router.post("/", async (req, res) => {
   try {
     console.log("📦 Incoming track data:", JSON.stringify(req.body, null, 2));
-    console.log("✅ Firebase bucket:", process.env.FIREBASE_STORAGE_BUCKET);
 
+    const newTrack = {
+      title: req.body.title,
+      value: req.body.value,         // number of courses
+      duration: req.body.duration,   // e.g., "12 weeks"
+      instructor: req.body.instructor,
+      description: req.body.description,
+      bgImg: req.body.bgImg || "",
+      price: Number(req.body.price) || 0,    // 💲 fallback to 0
+      students: req.body.students || 0, // enrolled count fallback to 0
+      reviews: req.body.reviews || 0,   // review count fallback to 0
+      learn: req.body.learn || [],   // array of "what you'll learn"
+      createdAt: new Date().toISOString()
+    };
 
-    const newTrack = req.body;
-
-    if (!newTrack.title || !newTrack.value || !newTrack.duration || !newTrack.instructor || !newTrack.description) {
-      console.error("❌ Missing required fields");
-      return res.status(400).json({ message: 'Missing required fields' });
+    // Upload image to Cloudinary if it's a base64 image
+    if (newTrack.bgImg?.startsWith("data:image/")) {
+      const uploadResponse = await cloudinary.uploader.upload(newTrack.bgImg, {
+        folder: "tracks",
+      });
+      newTrack.bgImg = uploadResponse.secure_url;
     }
 
-if (newTrack.bgImg?.startsWith("data:image/")) {
-  console.log("📤 Uploading to Cloudinary...");
-  console.log("🔐 Cloudinary API Key:", process.env.CLOUDINARY_API_KEY); // 🔍 
-  const uploadResponse = await cloudinary.uploader.upload(newTrack.bgImg, {
-    folder: "tracks",
-  });
-
-  newTrack.bgImg = uploadResponse.secure_url;
-}
-
-
-   // ✅ Save to Firestore
+    // Save to Firestore
     const docRef = await db.collection("tracks").add(newTrack);
     res.status(201).json({ id: docRef.id, ...newTrack });
 
   } catch (error) {
-    console.error("❌ Error adding track:", error.message, error.stack);
-    res.status(500).json({ message: 'Error adding track', error: error.message });
+    console.error("❌ Error adding track:", error.message);
+    res.status(500).json({ message: "Error adding track", error: error.message });
   }
 });
 
 
-
-export default router
+export default router;

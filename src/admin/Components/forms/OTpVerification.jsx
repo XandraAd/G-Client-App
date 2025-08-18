@@ -92,7 +92,7 @@ const OTPVerification = () => {
           id="otp"
           value={otp}
           onChange={(e) => setOtp(e.target.value)}
-          maxLength={5}
+          maxLength={6}
           className="w-full px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
           placeholder="12345"
           required

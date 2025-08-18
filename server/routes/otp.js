@@ -30,7 +30,7 @@ transporter.verify()
 const OTP_COLLECTION = "otp-verifications";
 const OTP_EXPIRY_MIN = 5;
 
-const generateOTP = () => Math.floor(10000 + Math.random() * 90000).toString();
+const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
 
 const saveOTP = async (email, otp) => {
   await db.collection(OTP_COLLECTION).doc(email).set({
