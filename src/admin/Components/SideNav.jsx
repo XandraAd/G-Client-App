@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate,useLocation } from "react-router-dom";
 import LogOutIcon from "../../assets/icons/logoutIcon.png";
 import Logo from "../../assets/icons/logo.png";
 import NavLinks from "../Components/NavLinks";
@@ -16,7 +16,7 @@ import { useAuth } from "../contexts/authContext/index"
 const navItems = [
   {
     title: "Dashboard",
-    path: "dashboard",
+    path: "/admin",
     icon: DashboardIcon,
     activeIcon: DashboardIconBlue,
   },
@@ -40,14 +40,19 @@ const navItems = [
     icon: DashboardIcon,
     activeIcon: DashboardIconBlue,
   },
+   
 ];
 
 function SideNav({ isOpen, onClose,user}) {
   const navigate = useNavigate();
+   const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   const [activeRoute, setActiveRoute] = useState(navItems[0].title);
   
-const {currentUser}=useAuth()
+const {currentUser}=useAuth();
+
+
+
   const handleLogout = async () => {
     try {
       setIsLoading(true);
@@ -69,7 +74,14 @@ const {currentUser}=useAuth()
         <div className="flex items-center gap-3">
           <button
             type="button"
-           onClick={() => navigate("/dashboard/manage-profile")}
+            
+    onClick={() => {
+    console.log("Current pathname:", location.pathname);
+    console.log("Navigating to manage-profile");
+    navigate("manage-profile");
+    // Check what the final URL is after navigation
+    setTimeout(() => console.log("New pathname:", window.location.pathname), 100);
+  }}
             className="focus:outline-none"
             aria-label="Edit profile"
           >

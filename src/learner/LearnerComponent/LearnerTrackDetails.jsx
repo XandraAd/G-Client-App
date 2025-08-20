@@ -6,6 +6,7 @@ import { db } from "../../admin/Config/Firebase";
 import { useCart } from "../../admin/contexts/CartContext";
 import { toast } from "react-toastify"; 
 import SkeletonLoader from "../../admin/Components/SkeletonLoader"
+import { FaCediSign } from "react-icons/fa6";
 
 export default function LearnerTrackDetails() {
   const { id } = useParams();
@@ -124,7 +125,7 @@ export default function LearnerTrackDetails() {
                   </li>
                 </ul>
                 <div className="mt-4 text-center">
-                  <p className="font-bold text-lg">${Number(track.value) || 0}</p>
+                  <p className="font-bold text-lg"> <FaCediSign className="inline mr-1" />{Number(track.value) || 0}</p>
 
                   {cartItems.some((item) => item.id === track.id) ? (
                     <button

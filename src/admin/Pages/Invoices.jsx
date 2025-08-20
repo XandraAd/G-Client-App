@@ -52,12 +52,12 @@ const Invoices = () => {
       return (
         inv.learnerName?.toLowerCase().includes(searchQuery) ||
         inv.email?.toLowerCase().includes(searchQuery) ||
-         inv.status?.toLowerCase().includes(searchQuery)
+        inv.status?.toLowerCase().includes(searchQuery)
       );
     });
 
     setFilteredInvoices(result);
-    setCurrentPage(1); 
+    setCurrentPage(1);
   };
 
   const handleEdit = (invoice) => {
@@ -102,8 +102,9 @@ const Invoices = () => {
 
       <ReactModal
         isOpen={isAddInvoiceModalOpen || isEditModalOpen}
-        onRequestClose={() =>{ setIsAddInvoiceModalOpen(false);
-           setIsEditModalOpen(false);
+        onRequestClose={() => {
+          setIsAddInvoiceModalOpen(false);
+          setIsEditModalOpen(false);
           setSelectedInvoice(null);
         }}
         className="rounded-lg p-6 w-full max-w-md mx-auto mt-20 outline-none relative"
@@ -116,23 +117,20 @@ const Invoices = () => {
             setIsEditModalOpen(false);
             setSelectedInvoice(null);
           }}
-           refreshInvoices={fetchInvoices}
+          refreshInvoices={fetchInvoices}
           existingInvoice={selectedInvoice}
           isEditing={isEditModalOpen}
         />
       </ReactModal>
 
-    
-
       <section className="py-6 min-h-full mb-10">
-        <div className="grid grid-cols-6 text-sm font-medium text-gray-600 mb-2 px-4">
+        <div className="grid grid-cols-5 text-sm font-medium text-gray-600 mb-2 px-4">
           <p>Learner</p>
           <p className="text-center">Email Address</p>
           <p className="text-center">Due Date</p>
           <p className="text-center">Amount</p>
           <p className="text-center">Status</p>
-  <p className="text-center"></p>          
-          
+          <p className="text-center"> </p>
         </div>
 
         {filteredInvoices.length === 0 ? (
@@ -155,14 +153,25 @@ const Invoices = () => {
                   key={invoice.id}
                   className="grid grid-cols-5 items-center px-4 py-3 shadow-sm rounded-lg bg-white hover:shadow-md transition"
                 >
-                  <div className="text-gray-800 font-semibold">{invoice.learnerName}</div>
-                  <div className="text-center text-sm text-gray-600">{invoice.email}</div>
-                  <div className="text-center text-sm text-gray-500">
-                    {invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString() : "—"}
+                  <div className="text-gray-800 font-semibold">
+                    {invoice.learnerName}
                   </div>
-                  <div className="text-center text-sm text-gray-700">${invoice.amount}</div>
+                  <div className="text-center text-sm text-gray-600">
+                    {invoice.email}
+                  </div>
+                  <div className="text-center text-sm text-gray-500">
+                    {invoice.dueDate && invoice.dueDate !== "—"
+                      ? new Date(invoice.dueDate).toLocaleDateString()
+                      : "—"}
+                  </div>
+
+                  <div className="text-center text-sm text-gray-700">
+                    {invoice.amountDisplay}
+                  </div>
                   <div className="flex justify-center gap-2">
-                    <span className={`text-sm font-medium rounded px-2 py-1 ${statusClass}`}>
+                    <span
+                      className={`text-sm font-medium rounded px-2 py-1 ${statusClass}`}
+                    >
                       {invoice.status}
                     </span>
                     <FiEdit2

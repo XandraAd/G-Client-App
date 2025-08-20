@@ -39,12 +39,19 @@ const Navigation = ({ onOpen, user, handleLogout }) => {
         </div>
 
         <div className="flex items-center gap-1">
-           <button
-                    type="button"
-                   onClick={() => navigate("/admin/manage-profile")}
-                    className="focus:outline-none"
-                    aria-label="Edit profile"
-                  >
+            <button
+            type="button"
+            
+    onClick={() => {
+    console.log("Current pathname:", location.pathname);
+    console.log("Navigating to manage-profile");
+    navigate("manage-profile");
+    // Check what the final URL is after navigation
+    setTimeout(() => console.log("New pathname:", window.location.pathname), 100);
+  }}
+            className="focus:outline-none"
+            aria-label="Edit profile"
+          >
                     <img
                       src={currentUser?.photoURL || AdminImg}
                       alt="Admin avatar"

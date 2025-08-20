@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { Link } from "react-router-dom";
 //import { IoPersonOutline } from "react-icons/io5";
+
+import { FaCediSign } from "react-icons/fa6";
 import CalendarIcon from "../../assets/icons/calendarIcon.png";
 import { db } from "../../admin/Config/Firebase.js";
 
@@ -58,7 +60,7 @@ const LearnerTracks = () => {
                   style={{ backgroundImage: `url(${bgImgKey})` }}
                 >
                   <p className="text-xs mt-2 px-2 py-1 bg-white rounded absolute right-5">
-                    ${Number(track.value).toLocaleString()}
+                     <FaCediSign className="inline mr-1" />{Number(track.value).toLocaleString()}
                   </p>
                 </div>
 

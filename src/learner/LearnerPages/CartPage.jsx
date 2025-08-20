@@ -3,6 +3,7 @@ import React,{useState} from "react";
 import { useCart } from "../../admin/contexts/CartContext";
 import { useLearnerAuth } from "../contexts/LearnerAuthContext.jsx";
 import { useNavigate } from "react-router-dom";
+import { FaCediSign } from "react-icons/fa6";
 
 const CartPage = () => {
   const { cartItems, removeFromCart } = useCart();
@@ -79,7 +80,7 @@ const handleCheckout = () => {
 
                 {/* Price */}
                 <div className="text-lg font-semibold">
-                  ${Number(item.price || 0).toFixed(2)}
+                   <FaCediSign className="inline mr-1" />{Number(item.price || 0).toFixed(2)}
                 </div>
               </div>
             ))
@@ -89,7 +90,7 @@ const handleCheckout = () => {
         {/* Right: Cart Summary */}
         <div className="border p-4 rounded-md h-fit">
           <p className="font-semibold text-lg mb-2">Total:</p>
-          <p className="text-2xl font-bold mb-4">${totalPrice.toFixed(2)}</p>
+          <p className="text-2xl font-bold mb-4"> <FaCediSign className="inline mr-1" />{totalPrice.toFixed(2)}</p>
 
         
 

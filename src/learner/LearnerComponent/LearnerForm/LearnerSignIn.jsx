@@ -27,7 +27,7 @@ const LearnerSignIn = ({ switchForm }) => {
       if (user) {
         const userDoc = await getDoc(doc(db, "users", user.uid));
         if (userDoc.exists() && userDoc.data().role === "learner") {
-          const redirectTo = location.state?.redirectTo || "/";
+          const redirectTo = location.state?.redirectTo || "/learner";
           navigate(redirectTo, { replace: true });
         }
       }

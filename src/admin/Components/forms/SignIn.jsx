@@ -22,7 +22,7 @@ const SignIn = ({ switchForm, onForgotPassword }) => {
     try {
       const userCredential = await adminSignIn(login.email, login.password);
       // If login is successful, go to dashboard
-      navigate("/dashboard");
+      navigate("/admin");
     } catch (error) {
       console.error("Login error:", error.code, error.message);
       setError(error.message || "Failed to login.");
@@ -53,6 +53,7 @@ const SignIn = ({ switchForm, onForgotPassword }) => {
             type="email"
             id="email"
             name="email"
+            value={login.email}
             onChange={handleChange}
             required
             className="w-full px-3 py-2 border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -67,6 +68,7 @@ const SignIn = ({ switchForm, onForgotPassword }) => {
             type="password"
             id="password"
             name="password"
+            value={login.password}
             onChange={handleChange}
             required
             className="w-full px-3 py-2 border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -75,7 +77,11 @@ const SignIn = ({ switchForm, onForgotPassword }) => {
 
         {/* Forgot Password */}
         <div className="text-left text-xs mb-4">
-          <button onClick={onForgotPassword} className="text-[#01589A] hover:underline">
+          <button 
+          type="button"
+          onClick={onForgotPassword} 
+          className="text-[#01589A] hover:underline"
+          >
             Forgot Password?
           </button>
         </div>

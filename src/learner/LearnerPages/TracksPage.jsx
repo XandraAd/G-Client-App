@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import CalendarIcon from "../../assets/icons/calendarIcon.png";
 import { CiSearch } from "react-icons/ci";
 import axios from "axios";
+import { FaCediSign } from "react-icons/fa6";
 
 const TracksPage = () => {
   const [query, setQuery] = useState("");
@@ -80,7 +81,7 @@ const TracksPage = () => {
                 style={{ backgroundImage: `url(${track.bgImg})` }}
               >
                 <p className="absolute top-2 right-2 text-xs px-2 py-1 bg-white rounded shadow">
-                  ${Number(track.value).toLocaleString()}
+                  <FaCediSign className="inline mr-1" />{Number(track.value).toLocaleString()}
                 </p>
               </div>
 

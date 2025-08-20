@@ -24,7 +24,7 @@ const LearnersNavBar = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center">
+          <Link to="/learner" className="flex items-center">
             <img
               src="/src/assets/icons/logo.png"
               alt="Logo"
@@ -35,7 +35,7 @@ const LearnersNavBar = () => {
           {/* Desktop Menu */}
           <nav className="hidden md:flex space-x-8">
             <Link
-              to="/"
+              to="/learner"
               className="text-gray-700 hover:text-blue-600 transition-colors text-sm font-medium py-2"
             >
               Home
@@ -138,7 +138,7 @@ const LearnersNavBar = () => {
 {mobileMenuOpen && (
   <div className="md:hidden bg-white shadow-lg border-t p-4 space-y-3 animate-slideDown">
     <Link
-      to="/"
+      to="/learner"
       onClick={() => setMobileMenuOpen(false)}
       className="block text-gray-700 hover:text-blue-600 font-medium"
     >

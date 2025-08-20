@@ -42,6 +42,7 @@ import CheckOut from "./learner/LearnerPages/CheckOut";
 import LearnerSettings from "./learner/LearnerPages/LearnerSettings";
 import LearnerInvoices from "./learner/LearnerPages/LearnerInvoices";
 import PrivateDashboard from "./learner/LearnerPages/PrivateDashboard";
+import PaymentSuccess from "./learner/LearnerPages/PaymentSuccess";
 
 function ProtectedRoute({ children, isAuthenticated, loading }) {
   if (loading) return <LoadingIndicator />;
@@ -55,7 +56,7 @@ function LearnerProtectedRoute({ children, isAuthenticated, loading }) {
 
 function App() {
   const currentUser = useAuth(); // admin
-  const {currentLearner,loading:learnerLoading} = useLearnerAuth(); // learner
+  const { currentLearner, loading: learnerLoading } = useLearnerAuth(); // learner
 
   const [authChecked, setAuthChecked] = useState(false);
   const [learnerChecked, setLearnerChecked] = useState(false);
@@ -73,13 +74,14 @@ function App() {
       <>
         {/* ---------------- PUBLIC LEARNER ROUTES ---------------- */}
         <Route element={<PublicLearnerLayout />}>
-          <Route path="/" element={<PublicDashboard />} />
+          <Route path="/learner" element={<PublicDashboard />} />
           <Route path="/courses" element={<Courses />} />
           <Route path="/tracks" element={<LearnerTracks />} />
           <Route path="/tracksPage" element={<TracksPage />} />
           <Route path="tracks/:id" element={<LearnerTrackDetails />} />
-          <Route path="/cartpage" element={<CartPage/>}/>
-          <Route path="/checkout" element={<CheckOut/>}/>
+          <Route path="/cartpage" element={<CartPage />} />
+          <Route path="/checkout" element={<CheckOut />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
         </Route>
 
         {/* Learner Auth Pages */}
@@ -104,7 +106,7 @@ function App() {
 
         {/* ---------------- ADMIN PROTECTED ROUTES ---------------- */}
         <Route
-          path="/dashboard"
+          path="/admin"
           element={
             <ProtectedRoute isAuthenticated={isAdmin} loading={!authChecked}>
               <Layout />
@@ -128,18 +130,17 @@ function App() {
           element={
             <LearnerProtectedRoute
               isAuthenticated={isLearner}
-              loading={learnerLoading}
+              loading={!learnerChecked || learnerLoading}
             >
               <LearnerPortalLayout />
             </LearnerProtectedRoute>
           }
         >
-           <Route element={<LearnerDashboard />} >
-    <Route index element={<Navigate to="privatedashboard" replace />} />
-    <Route path="privatedashboard" element={<PrivateDashboard />} />
-    <Route path="settings" element={<LearnerSettings />} />
-    <Route path="learnerinvoices" element={<LearnerInvoices />} />
-        </Route>
+          <Route index element={<Navigate to="privatedashboard" replace />} />
+          <Route path="privatedashboard" element={<PrivateDashboard />} />
+          <Route path="dashboard" element={<LearnerDashboard />} />
+          <Route path="settings" element={<LearnerSettings />} />
+          <Route path="invoices" element={<LearnerInvoices />} />
         </Route>
 
         {/* ---------------- CATCH ALL ---------------- */}

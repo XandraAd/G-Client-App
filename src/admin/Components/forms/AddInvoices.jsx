@@ -4,11 +4,14 @@ import axios from "axios";
 const AddInvoices = ({ onClose, refreshInvoices, existingInvoice, isEditing }) => {
   const [learners, setLearners] = useState([]);
   const [invoiceData, setInvoiceData] = useState({
-    learnerId: existingInvoice?.learnerId || "",
+    userId: existingInvoice?.userId || "",
+    email: existingInvoice?.learnerEmail || "",
     learnerName:existingInvoice?.learnerName || "",
     amount: existingInvoice?.amount || "",
+     currency: existingInvoice?.currency || "GHS",
     dueDate: existingInvoice?.dueDate || "",
-    status: existingInvoice?.status || "Pending",
+    items: existingInvoice?.items || [], // Added items field
+    status: existingInvoice?.status || "pending",
     paymentDetails: existingInvoice?.paymentDetails || "",
   });
   const [message, setMessage] = useState("");
@@ -28,6 +31,20 @@ const AddInvoices = ({ onClose, refreshInvoices, existingInvoice, isEditing }) =
   const handleChange = (e) => {
     const { name, value } = e.target;
     setInvoiceData((prev) => ({ ...prev, [name]: value }));
+  };
+
+    // Handle learner selection to auto-fill email
+  const handleLearnerSelect = (e) => {
+    const selectedLearnerId = e.target.value;
+    const selectedLearner = learners.find(learner => learner.id === selectedLearnerId);
+    
+    if (selectedLearner) {
+      setInvoiceData(prev => ({
+        ...prev,
+        userId: selectedLearnerId,
+        email: selectedLearner.email
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -61,9 +78,9 @@ const AddInvoices = ({ onClose, refreshInvoices, existingInvoice, isEditing }) =
           <label className="block">
             <span className="text-sm text-gray-700 font-medium mb-1 block">Select Learner</span>
             <select
-              name="learnerId"
-              value={invoiceData.learnerId}
-              onChange={handleChange}
+              name="userId"
+              value={invoiceData.userId}
+              onChange={handleLearnerSelect}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
             >

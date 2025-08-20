@@ -15,6 +15,7 @@ import invoicesRouter from "./routes/invoices.js";
 import learnersRouter from "./routes/learners.js";
 import reportRouter from "./routes/report.js";
 import cartRouter from "./routes/cart.js"
+import paymentRouter from "./routes/payment.js"
 
 
 // Initialize environment variables
@@ -76,6 +77,7 @@ app.use("/api/invoices", invoicesRouter);
 app.use("/api/learners", learnersRouter);
 app.use("/api/report", reportRouter);
 app.use("/api/cart",cartRouter)
+app.use("/api/payment",paymentRouter)
 
 
 // Health Check
