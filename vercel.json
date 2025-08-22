@@ -3,13 +3,17 @@
   "builds": [
     {
       "src": "server/index.js",
-      "use": "@vercel/node"
+      "use": "@vercel/node",
+      "config": {
+        "installCommand": "cd server && npm install"
+      }
     },
     {
       "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "dist"
+        "distDir": "dist",
+        "installCommand": "npm install"
       }
     }
   ],
@@ -20,7 +24,7 @@
     },
     {
       "src": "/(.*)",
-     "dest": "/dist/$1"
+      "dest": "/dist/$1"
     }
   ]
 }

@@ -104,14 +104,17 @@ app.use((err, req, res, next) => {
 });
 
 // Start Server
-app.listen(PORT, () => {
-  console.log(`
-    🚀 Server running in ${process.env.NODE_ENV || "development"} mode
-    🔗 URL: http://localhost:${PORT}
-    📅 ${new Date().toLocaleString()}
-    🔥 Firebase ${admin.apps.length > 0 ? 'initialized' : 'not initialized'}
-  `);
-});
+// Keep your existing app.listen for local development
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`
+      🚀 Server running in ${process.env.NODE_ENV || "development"} mode
+      🔗 URL: http://localhost:${PORT}
+      📅 ${new Date().toLocaleString()}
+      🔥 Firebase ${admin.apps.length > 0 ? 'initialized' : 'not initialized'}
+    `);
+  });
+}
 
-// Export for testing
+
 export { app, db };
