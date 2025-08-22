@@ -93,19 +93,19 @@ const OnboardingSteps = () => {
                 icon: CodeIcon,
                 title: "Software Development",
                 desc: "Unlock your potential with comprehensive training in modern software development.",
-                price: "$350",
+                price: "GHS 3500",
               },
               {
                 icon: DataIcon,
                 title: "Data Science Mastery",
                 desc: "Equip yourself with the skills to analyze, interpret, and leverage data, becoming an expert.",
-                price: "$420",
+                price: "GHS 4200",
               },
               {
                 icon: CloudIcon,
                 title: "Cloud Computing Expertise",
                 desc: "Gain hands-on experience in cloud architecture, preparing you to manage scalable solutions.",
-                price: "$220",
+                price: "GHS 2200",
               },
             ].map((course, index) => (
               <div

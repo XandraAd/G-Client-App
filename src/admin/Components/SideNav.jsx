@@ -9,6 +9,8 @@ import CommunityIcon from "../../assets/icons/People Community.png";
 import VectorIconBlue from "../../assets/icons/VectorActive.png";
 import HatGraduationIcon from "../../assets/icons/Hat Graduation.png";
 import DashboardIconBlue from "../../assets/icons/GlanceActive.png";
+import LearnerActive from "../../assets/icons/learnerActive.png";
+import InvoiceActive from "../../assets/icons/invoiceActive.png";
 import AdminImg from "../../assets/icons/adminImg.png";
 import { useAuth } from "../contexts/authContext/index"
 
@@ -20,8 +22,15 @@ const navItems = [
     icon: DashboardIcon,
     activeIcon: DashboardIconBlue,
   },
-  { title: "Invoices", path: "invoices", icon: VectorIcon },
-  { title: "Learners", path: "learners", icon: CommunityIcon },
+  { title: "Invoices",
+     path: "invoices", 
+     icon: VectorIcon ,
+    activeIcon:InvoiceActive},
+
+  { title: "Learners", 
+    path: "learners", 
+    icon: CommunityIcon,
+  activeIcon:LearnerActive},
   {
     title: "Tracks",
     path: "tracks",

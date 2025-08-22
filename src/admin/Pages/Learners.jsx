@@ -148,7 +148,7 @@ const Learners = () => {
         {l.tracks && l.tracks.length > 0 ? (
           <>
             <div className="truncate max-w-[120px] mx-auto">
-              {l.tracks[0].name}
+              {l.tracks[0].title}
               {l.tracks.length > 1 && ` +${l.tracks.length - 1}`}
             </div>
             

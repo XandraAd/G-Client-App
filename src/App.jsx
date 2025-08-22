@@ -28,7 +28,7 @@ import FirebaseActionHandler from "./admin/Config/FirebaseAction";
 
 // Learner components
 import PublicLearnerLayout from "./learner/learnersLayout/PublicLearnerLayout";
-import LearnerPortalLayout from "./learner/learnersLayout/LearnerPortalLayout";
+
 import PublicDashboard from "./learner/LearnerPages/PublicDashboard";
 import LearnerDashboard from "./learner/LearnerPages/LearnerPortalDashBoard";
 import LearnerLoginPage from "./learner/LearnerPages/LearnerLoginPage";
@@ -74,6 +74,7 @@ function App() {
       <>
         {/* ---------------- PUBLIC LEARNER ROUTES ---------------- */}
         <Route element={<PublicLearnerLayout />}>
+         <Route path="/" element={<PublicDashboard />} /> 
           <Route path="/learner" element={<PublicDashboard />} />
           <Route path="/courses" element={<Courses />} />
           <Route path="/tracks" element={<LearnerTracks />} />
@@ -132,15 +133,15 @@ function App() {
               isAuthenticated={isLearner}
               loading={!learnerChecked || learnerLoading}
             >
-              <LearnerPortalLayout />
+              <LearnerDashboard />
             </LearnerProtectedRoute>
           }
         >
-          <Route index element={<Navigate to="privatedashboard" replace />} />
-          <Route path="privatedashboard" element={<PrivateDashboard />} />
-          <Route path="dashboard" element={<LearnerDashboard />} />
+          <Route index element={<Navigate to="dashboard" replace />} />
+     
+      <Route path="dashboard" element={<PrivateDashboard/>}/>
           <Route path="settings" element={<LearnerSettings />} />
-          <Route path="invoices" element={<LearnerInvoices />} />
+          <Route path="learnerinvoices" element={<LearnerInvoices />} />
         </Route>
 
         {/* ---------------- CATCH ALL ---------------- */}

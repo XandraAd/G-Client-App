@@ -10,7 +10,7 @@ import BarChart from "../Components/BarChart";
 import LatestInvoice from "../Components/LatestInvoice";
 
 const DashBoard = () => {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();  
   const [learners, setLearners] = useState([]);
   const [invoices, setInvoices] = useState([]);
   const [tracks, setTracks] = useState([]);
@@ -127,11 +127,12 @@ const DashBoard = () => {
           </button>
         </div>
 
-      <div className="my-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
   {tracks.slice(0, 4).map((track) => (
     <div
       key={track.id || track.title}
-      className="rounded-xl shadow-lg flex flex-col lg:w-[190px] xl:w-[240px] relative overflow-hidden"
+  className="rounded-xl shadow-lg flex flex-col relative overflow-hidden"
+    
     >
       <div
         className="rounded-t-md w-full h-[180px] bg-no-repeat bg-cover min-w-full relative"

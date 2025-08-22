@@ -6,11 +6,7 @@ import { getFirestore } from "firebase-admin/firestore";
 const router = express.Router();
 const db = getFirestore();
 
-// Check for Paystack secret key at the top level
-if (!process.env.PAYSTACK_SECRET_KEY) {
-  console.error("❌ Paystack secret key is missing!");
-  console.error("Please set PAYSTACK_SECRET_KEY environment variable");
-}
+
 
 // Add middleware to log all requests
 router.use((req, res, next) => {
@@ -82,14 +78,12 @@ router.post("/initialize", async (req, res) => {
     learnerName
   });
 
-  // Check if Paystack secret key is available
-  if (!process.env.PAYSTACK_SECRET_KEY) {
-    console.error("Paystack secret key missing in initialize route");
-    return res.status(500).json({ 
-      success: false, 
-      error: "Server configuration error: Paystack secret key missing" 
-    });
+  // Validate cartItems
+  const validatedCartItems = Array.isArray(cartItems) ? cartItems : [];
+  if (validatedCartItems.length === 0) {
+    console.warn("⚠️ WARNING: cartItems is empty or not an array");
   }
+
 
   try {
     const paystackRes = await axios.post(
@@ -103,7 +97,7 @@ router.post("/initialize", async (req, res) => {
         metadata: {
           userId,
           learnerName,
-          cartItems: JSON.stringify(cartItems || [])
+          cartItems: JSON.stringify(validatedCartItems)
         }
       },
       {
@@ -120,9 +114,10 @@ router.post("/initialize", async (req, res) => {
       learnerName,
       email,
       amount,
+      
       currency: "GHS",
       status: "pending",
-      cartItems: cartItems || [],
+     cartItems: validatedCartItems,
       reference,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -152,17 +147,18 @@ router.post("/initialize", async (req, res) => {
 /**
  * Verify Payment
  */
+/**
+ * Verify Payment - FIXED VERSION
+ */
 router.get("/verify/:reference", async (req, res) => {
   const { reference } = req.params;
 
   console.log("Verifying payment reference:", reference);
 
-  // Check if Paystack secret key is available
   if (!process.env.PAYSTACK_SECRET_KEY) {
-    console.error("Paystack secret key missing in verify route");
     return res.status(500).json({ 
       success: false, 
-      error: "Server configuration error: Paystack secret key missing" 
+      error: "Paystack secret key missing" 
     });
   }
 
@@ -183,26 +179,59 @@ router.get("/verify/:reference", async (req, res) => {
       const payData = verification.data;
       const amountGHS = payData.amount / 100;
 
-      // Update payment record
+      // Fetch the original payment data
+      const paymentSnap = await db.collection("payments").doc(reference).get();
+      const paymentData = paymentSnap.exists ? paymentSnap.data() : {};
+
+      // Get cartItems from multiple possible sources
+      let cartItems = [];
+      
+      // 1. First try from payment data
+      if (paymentData.cartItems && Array.isArray(paymentData.cartItems)) {
+        cartItems = paymentData.cartItems;
+        console.log("Got cartItems from payment data:", cartItems);
+      }
+      // 2. Try from Paystack metadata
+      else if (payData.metadata && payData.metadata.cartItems) {
+        try {
+          cartItems = JSON.parse(payData.metadata.cartItems);
+          console.log("Got cartItems from Paystack metadata:", cartItems);
+        } catch (parseError) {
+          console.error("Failed to parse cartItems from metadata:", parseError);
+        }
+      }
+      // 3. Try from payment metadata (backup)
+      else if (paymentData.metadata && paymentData.metadata.cartItems) {
+        try {
+          cartItems = JSON.parse(paymentData.metadata.cartItems);
+          console.log("Got cartItems from payment metadata:", cartItems);
+        } catch (parseError) {
+          console.error("Failed to parse cartItems from payment metadata:", parseError);
+        }
+      }
+
+      console.log("Final cartItems:", cartItems);
+
+      // Update payment record with completion status
       await db.collection("payments").doc(reference).update({
         status: "completed",
         paidAt: new Date(payData.paid_at),
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         paystackReference: payData.reference,
-        channel: payData.channel
+        channel: payData.channel,
+        cartItems: cartItems // Ensure cartItems are saved
       });
-
-      // Fetch original paymentData
-      const snap = await db.collection("payments").doc(reference).get();
-      const paymentData = snap.exists ? snap.data() : {};
 
       // Create invoice data
       const invoiceData = {
-        ...paymentData,
+        userId: paymentData.userId,
+        learnerName: paymentData.learnerName,
+        email: paymentData.email,
         amount: amountGHS,
         currency: "GHS",
         reference,
         status: "paid",
+        cartItems: cartItems, // Include cartItems
         paidAt: new Date(payData.paid_at),
         createdAt: paymentData.createdAt || new Date(),
         updatedAt: new Date(),
@@ -214,23 +243,31 @@ router.get("/verify/:reference", async (req, res) => {
         },
       };
 
-      // Save invoice in collection
+      // Save invoice
       await db.collection("invoices").doc(reference).set(invoiceData);
-      console.log("Invoice saved:", reference);
+      console.log("Invoice saved with cartItems:", cartItems);
 
-      // Update user's document (not learners collection)
-      if (paymentData.userId) {
+      // Update user's document with purchased tracks
+      if (paymentData.userId && cartItems.length > 0) {
         const userRef = db.collection("users").doc(paymentData.userId);
-
-        await userRef.set(
-          {
-            invoices: admin.firestore.FieldValue.arrayUnion(reference),
-            pendingPayments: admin.firestore.FieldValue.arrayRemove(reference),
-            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-          },
-          { merge: true }
-        );
-        console.log("User document updated:", paymentData.userId);
+        
+        // Extract track IDs from cartItems
+        const purchasedTrackIds = cartItems
+          .filter(item => item.id)
+          .map(item => item.id);
+        
+        if (purchasedTrackIds.length > 0) {
+          await userRef.set(
+            {
+              invoices: admin.firestore.FieldValue.arrayUnion(reference),
+              purchasedTracks: admin.firestore.FieldValue.arrayUnion(...purchasedTrackIds),
+              pendingPayments: admin.firestore.FieldValue.arrayRemove(reference),
+              updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            },
+            { merge: true }
+          );
+          console.log("User enrolled in tracks:", purchasedTrackIds);
+        }
       }
 
       return res.json({
@@ -239,7 +276,6 @@ router.get("/verify/:reference", async (req, res) => {
         data: invoiceData,
       });
     } else {
-      console.log("Payment not successful:", verification);
       return res.status(400).json({ 
         success: false, 
         message: "⚠️ Payment not successful",
@@ -247,13 +283,10 @@ router.get("/verify/:reference", async (req, res) => {
       });
     }
   } catch (err) {
-    console.error("Verify error:", err.response?.data || err.message);
-    console.error("Error stack:", err.stack);
-    
+    console.error("Verify error:", err);
     res.status(500).json({ 
       success: false, 
-      error: err.message,
-      details: err.response?.data 
+      error: err.message
     });
   }
 });
@@ -324,5 +357,8 @@ router.get("/status/:reference", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+
+
 
 export default router;

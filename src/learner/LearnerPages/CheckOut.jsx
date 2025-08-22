@@ -79,7 +79,8 @@ const cleanObject = (obj) => {
   }, [params, navigate]);
 
 // ---- Utility: prepare data for API (remove Firestore-specific values) ----
-const prepareForAPI = (obj) => {
+
+{/**const prepareForAPI = (obj) => {
   const cleaned = Object.fromEntries(
     Object.entries(obj).filter(([_, v]) => {
       // Remove Firestore serverTimestamp and other special values
@@ -95,7 +96,8 @@ const prepareForAPI = (obj) => {
   );
   
   return cleaned;
-};
+}; */}
+
 
   useEffect(() => {
     if (reference) {
@@ -159,6 +161,28 @@ const prepareForAPI = (obj) => {
     pwdStatus: "",
     disabilityOther: "",
   });
+
+
+  // Add this function to update user profile
+const updateUserProfile = async (userId, formData) => {
+  try {
+    const userRef = doc(db, "users", userId);
+    await updateDoc(userRef, {
+      phone: formData.phone,
+      location: formData.location,
+      gender: formData.gender,
+      pwdStatus: formData.pwdStatus,
+      disabilityOther: formData.disabilityOther,
+      fullName: formData.fullName,
+      updatedAt: serverTimestamp()
+    });
+    console.log("User profile updated successfully");
+    return true;
+  } catch (error) {
+    console.error("Error updating user profile:", error);
+    return false;
+  }
+};
 
   // Load user profile
   useEffect(() => {
@@ -291,6 +315,13 @@ const handleCheckout = async () => {
   setIsProcessing(true);
 
   try {
+      // First update the user profile with the form data
+    const profileUpdated = await updateUserProfile(currentLearner.uid, formData);
+    if (!profileUpdated) {
+      alert("Failed to update profile. Please try again.");
+      setIsProcessing(false);
+      return;
+    }
     const trxRef = `trx-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
     const invoiceNumber = "INV-" + new Date().getFullYear() + "-" + Math.floor(1000 + Math.random() * 9000);
 
@@ -304,19 +335,31 @@ const handleCheckout = async () => {
       })
     );
 
-    // Build payment data for API (use regular Date objects)
+ // Build payment data for API
     const paymentDataForAPI = cleanObject({
       userId: currentLearner.uid,
       learnerName: formData.fullName || currentLearner.displayName || "Unknown",
       email: formData.email || currentLearner.email || "No email",
       amount: Number(customAmount),
+      gender: formData.gender,
+      phone: formData.phone, // Add phone to payment data
+      location: formData.location, // Add location to payment data
       currency: "GHS",
       reference: trxRef,
       courses: sanitizedItems.map((item) => item.id),
-      items: sanitizedItems,
+      cartItems: sanitizedItems,
       status: "pending",
       createdAt: new Date().toISOString(),
     });
+
+    // Right before the fetch call, add:
+console.log("Sending to backend:", {
+  ...paymentDataForAPI,
+  cartItems: sanitizedItems // Log the actual cart items
+});
+
+console.log("Number of cart items:", sanitizedItems.length);
+console.log("Cart items details:", sanitizedItems);
 
     // 🔑 Send to backend
     const response = await fetch("http://localhost:5000/api/payment/initialize", {

@@ -1,8 +1,17 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import HeroBackground from "../../assets/icons/herobackground.jpg";
 
 const LearnersHerosection = () => {
+  const navigate = useNavigate();
+  
+  const handleClick = (e) => {
+    e.preventDefault();
+    console.log("Navigation triggered to /learner/signin");
+    // Try programmatic navigation as alternative
+    navigate("/learner/signin");
+  };
+
   return (
     <section
       className="relative flex items-center py-20 min-h-[400px]"
@@ -27,12 +36,14 @@ const LearnersHerosection = () => {
             their careers. Our expert-led courses are designed to empower you to
             succeed.
           </p>
-          <Link
+          {/* Try both approaches */}
+          <NavLink
             to="/learner/signin"
+            onClick={handleClick}
             className="inline-block px-8 py-3 bg-blue-600 text-white font-medium rounded-lg shadow-lg hover:bg-blue-700 transition duration-300"
           >
             Get Started
-          </Link>
+          </NavLink>
         </div>
       </div>
     </section>
@@ -40,6 +51,5 @@ const LearnersHerosection = () => {
 };
 
 export default LearnersHerosection;
-
 
 

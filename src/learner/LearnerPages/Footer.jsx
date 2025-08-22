@@ -24,12 +24,12 @@ const Footer = () => {
           <h4 className="font-semibold mb-3">Menu</h4>
           <ul className="space-y-2">
             <li>
-              <Link to="/" className="hover:underline">
+              <Link to="/learner" className="hover:underline">
                 Home
               </Link>
             </li>
             <li>
-              <Link to="/learner/track" className="hover:underline">
+              <Link to="/tracksPage" className="hover:underline">
                 Tracks
               </Link>
             </li>
