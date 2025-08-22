@@ -9,7 +9,7 @@ export default defineConfig({
     outDir: 'dist',
   },
    
-  erver: process.env.NODE_ENV === 'development' ? {
+  server: process.env.NODE_ENV === 'development' ? {
     proxy:{
       '/api':{
         target:"http://localhost:5000",
