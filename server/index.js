@@ -4,8 +4,7 @@ import bodyParser from "body-parser";
 import admin from "firebase-admin";
 import dotenv from "dotenv";
 import { getFirestore } from "firebase-admin/firestore";
-import { deployFirestoreRules } from "./firebase-admin.js";
-
+// import { deployFirestoreRules } from "./firebase-admin.js"; // Remove or comment this
 
 // Routes
 import otpRoutes from "./routes/otp.js";
@@ -17,11 +16,11 @@ import reportRouter from "./routes/report.js";
 import cartRouter from "./routes/cart.js"
 import paymentRouter from "./routes/payment.js"
 
-
 // Initialize environment variables
 dotenv.config();
 
-deployFirestoreRules().catch(console.error);
+// Comment out Firestore rules deployment for Vercel
+// deployFirestoreRules().catch(console.error);
 
 // Firebase Admin Initialization
 function initializeFirebase() {
@@ -49,7 +48,8 @@ function initializeFirebase() {
     return getFirestore();
   } catch (error) {
     console.error("❌ Firebase initialization failed:", error);
-    process.exit(1);
+    // Don't exit process in serverless environment
+    throw error;
   }
 }
 
@@ -76,12 +76,11 @@ app.use("/api/courses", coursesRouter);
 app.use("/api/invoices", invoicesRouter);
 app.use("/api/learners", learnersRouter);
 app.use("/api/report", reportRouter);
-app.use("/api/cart",cartRouter)
-app.use("/api/payment",paymentRouter)
-
+app.use("/api/cart", cartRouter);
+app.use("/api/payment", paymentRouter);
 
 // Health Check
-app.get("/", (req, res) => {
+app.get("/api", (req, res) => {  // Changed from "/" to "/api"
   res.json({ 
     status: "running",
     environment: process.env.NODE_ENV || "development",
@@ -90,6 +89,14 @@ app.get("/", (req, res) => {
       project: process.env.FIREBASE_PROJECT_ID,
       initialized: admin.apps.length > 0
     }
+  });
+});
+
+// Test endpoint
+app.get("/api/test", (req, res) => {
+  res.json({ 
+    message: "Server is working on Vercel!",
+    timestamp: new Date().toISOString()
   });
 });
 
@@ -103,9 +110,8 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start Server
-// Keep your existing app.listen for local development
-if (process.env.NODE_ENV !== 'production') {
+// Start Server only if not in Vercel environment
+if (process.env.VERCEL !== '1') {
   app.listen(PORT, () => {
     console.log(`
       🚀 Server running in ${process.env.NODE_ENV || "development"} mode
@@ -116,5 +122,5 @@ if (process.env.NODE_ENV !== 'production') {
   });
 }
 
-
-export { app, db };
+// Export for Vercel serverless function (DEFAULT EXPORT)
+export default app;

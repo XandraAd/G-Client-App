@@ -2,27 +2,29 @@
   "version": 2,
   "builds": [
     {
+      "src": "server/index.js",
+      "use": "@vercel/node",
+      "config": {
+        "installCommand": "cd server && npm install"
+      }
+    },
+    {
       "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "dist"
+        "distDir": "dist",
+        "installCommand": "npm install"
       }
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/api/$1"
+      "dest": "/server/index.js"
     },
     {
       "src": "/(.*)",
       "dest": "/dist/$1"
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/dist/index.html"
     }
   ]
 }
