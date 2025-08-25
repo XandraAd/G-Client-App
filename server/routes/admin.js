@@ -10,17 +10,16 @@ router.post('/init-first-admin', async (req, res) => {
     const { email, password, firstName, lastName } = req.body;
     
     // 1. Create auth account
-    const user = await admin.auth().createUser({
-      email,
-      password,
-      displayName: `${firstName} ${lastName}`
-    });
+    //const user = await admin.auth().createUser({
+    //  email,
+    //  password,
+     // displayName: `${firstName} ${lastName}`
+  //  });
     
     // 2. Set custom claims
-    await admin.auth().setCustomUserClaims(user.uid, {
-      admin: true,
-      superAdmin: true
-    });
+ const user = await admin.auth().getUserByEmail("ewuramaaddo@yahoo.com");
+console.log(user.customClaims);
+
     
     // 3. Create user document
     await admin.firestore().collection('users').doc(user.uid).set({
@@ -28,7 +27,7 @@ router.post('/init-first-admin', async (req, res) => {
       firstName,
       lastName,
       isAdmin: true,
-      isSuperAdmin: true,
+     
       createdAt: admin.firestore.FieldValue.serverTimestamp()
     });
     
@@ -38,6 +37,36 @@ router.post('/init-first-admin', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+// routes/admin.js
+router.post('/signup', async (req, res) => {
+  try {
+    const { email, password, firstName, lastName } = req.body;
+
+    const user = await admin.auth().createUser({
+      email,
+      password,
+      displayName: `${firstName} ${lastName}`,
+    });
+
+    // Assign admin role via claims
+    await admin.auth().setCustomUserClaims(user.uid, { admin: true });
+
+    // Save profile in Firestore
+    await admin.firestore().collection("users").doc(user.uid).set({
+      email,
+      firstName,
+      lastName,
+      isAdmin: true,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    res.json({ success: true, uid: user.uid });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
 // promote a user as admin
 router.post('/promote-to-admin', async (req, res) => {

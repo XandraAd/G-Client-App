@@ -1,11 +1,13 @@
 import Logo from "../../../assets/icons/logo.png";
 import { useState } from "react";
-import { adminSignIn } from "../../Config/auth";
+import { adminSignIn } from "../../Config/auth"; // wraps Firebase signInWithEmailAndPassword
 import { useNavigate } from "react-router-dom";
+import { auth } from "../../Config/Firebase";
 
 const SignIn = ({ switchForm, onForgotPassword }) => {
   const [login, setLogin] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -15,17 +17,48 @@ const SignIn = ({ switchForm, onForgotPassword }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError("");
+
     if (!login.email || !login.password) {
-      return alert("Please enter your email and password.");
+      setError("Please enter your email and password.");
+      setLoading(false);
+      return;
     }
 
     try {
+      // 1. Firebase sign in
       const userCredential = await adminSignIn(login.email, login.password);
-      // If login is successful, go to dashboard
-      navigate("/admin");
+      const user = userCredential.user;
+
+      // 2. Get Firebase ID token
+      const idToken = await user.getIdToken();
+
+      // 3. Call backend to check role
+      const response = await fetch("http://localhost:5000/api/admin/check-role", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.isAdmin) {
+          navigate("/admin");
+        } else {
+          await auth.signOut();
+          setError("Access denied. Admin privileges required.");
+        }
+      } else {
+        await auth.signOut();
+        setError("Unable to verify role. Try again.");
+      }
     } catch (error) {
-      console.error("Login error:", error.code, error.message);
+      console.error("Login error:", error.message);
       setError(error.message || "Failed to login.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -78,9 +111,9 @@ const SignIn = ({ switchForm, onForgotPassword }) => {
         {/* Forgot Password */}
         <div className="text-left text-xs mb-4">
           <button 
-          type="button"
-          onClick={onForgotPassword} 
-          className="text-[#01589A] hover:underline"
+            type="button"
+            onClick={onForgotPassword} 
+            className="text-[#01589A] hover:underline"
           >
             Forgot Password?
           </button>
@@ -90,9 +123,10 @@ const SignIn = ({ switchForm, onForgotPassword }) => {
 
         <button
           type="submit"
-          className="w-full bg-[#01589A] text-white py-2 my-4 rounded hover:bg-blue-700 transition duration-200"
+          disabled={loading}
+          className="w-full bg-[#01589A] text-white py-2 my-4 rounded hover:bg-blue-700 transition duration-200 disabled:opacity-50"
         >
-          Sign In
+          {loading ? "Signing In..." : "Sign In"}
         </button>
 
         <div className="mt-4 text-center text-sm text-gray-600">

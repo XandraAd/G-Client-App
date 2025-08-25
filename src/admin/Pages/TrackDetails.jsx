@@ -20,7 +20,7 @@ const TrackDetails = () => {
  
     const fetchTrack = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/tracks/${id}`);
+        const res = await axios.get(`/api/tracks/${id}`);
         setTrack(res.data);
       } catch (error) {
         console.error("Failed to load track:", error);

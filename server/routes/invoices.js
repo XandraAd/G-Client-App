@@ -161,25 +161,25 @@ router.get("/", async (req, res) => {
         return {
           id: doc.id,
           ...data,
-          learnerName:
-            data.learnerName ||
-            (learner ? learner.learnerName : null) ||
-            data.name ||
-            "Unknown",
-          email:
-            data.learnerEmail ||
-            (learner ? learner.email : null) ||
-            data.email ||
-            "No email",
+        learnerName:
+    (learner && learner.learnerName) ||
+    data.name ||
+    data.learnerName ||
+    "Unknown",
+
+  email:
+    (learner && learner.email) ||
+    data.learnerEmail ||
+    data.email ||
+    "No email",
           amount: amountValue,
           currency,
           amountDisplay:
             currency === "GHS"
               ? `GHS ${amountValue.toFixed(2)}`
               : `$${amountValue.toFixed(2)}`,
-          createdAt: data.createdAt
-            ? new Date(data.createdAt).toLocaleDateString()
-            : "Unknown date",
+         createdAt: data.createdAt || data.createdAtDate || 
+                    (data.createdAt?.toDate ? data.createdAt.toDate().toISOString().split("T")[0] : new Date().toISOString().split("T")[0]),
           paidAt: data.paidAt
             ? new Date(data.paidAt).toLocaleDateString()
             : null,
@@ -211,8 +211,9 @@ router.get("/:learnerId", async (req, res) => {
     const snapshot = await db
       .collection("invoices")
       .where("userId", "==", learnerId)
-      .orderBy("createdAt", "desc")
+      //.orderBy("createdAt", "desc")
       .get();
+console.log("Querying invoices for userId:", learnerId);
 
     const invoices = snapshot.docs.map((doc) => {
       const data = doc.data();
@@ -227,13 +228,13 @@ router.get("/:learnerId", async (req, res) => {
         ...data,
         amount: amountValue,
         currency,
+        
         amountDisplay:
           currency === "GHS"
             ? `GHS ${amountValue.toFixed(2)}`
             : `$${amountValue.toFixed(2)}`,
-        createdAt: data.createdAt
-          ? new Date(data.createdAt).toLocaleDateString()
-          : "Unknown date",
+         createdAt: data.createdAt || data.createdAtDate || 
+                    (data.createdAt?.toDate ? data.createdAt.toDate().toISOString().split("T")[0] : new Date().toISOString().split("T")[0]),
         dueDate: data.dueDate
           ? new Date(data.dueDate).toLocaleDateString()
           : "—",

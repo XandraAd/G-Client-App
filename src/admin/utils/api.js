@@ -1,6 +1,7 @@
+// src/utils/api.js (client-side)
 const API_BASE = import.meta.env.PROD 
-  ? '/api'  // In production, use relative path (handled by Vercel routing)
-  : 'http://localhost:5000';  // In development, use proxy
+  ? '/api'  // In production, calls go to /api/* (routed to your server)
+  : 'http://localhost:5000/api';  // In development, calls go to local server
 
 export const apiRequest = async (endpoint, options = {}) => {
   const url = `${API_BASE}${endpoint}`;
@@ -18,7 +19,3 @@ export const apiRequest = async (endpoint, options = {}) => {
   
   return response.json();
 };
-
-// Usage example:
-// const data = await apiRequest('/users');
-// const result = await apiRequest('/posts', { method: 'POST', body: JSON.stringify({ title: 'Hello' }) });

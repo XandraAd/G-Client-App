@@ -36,7 +36,7 @@ const Tracks = () => {
   // 🔁 1. Define fetchTracks OUTSIDE useEffect
   const fetchTracks = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/tracks");
+      const res = await axios.get("/api/tracks");
       setTracks(res.data);
       setFilteredTracks(res.data);
     } catch (error) {

@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { getAuth } from "firebase/auth";
+import { doc, getDoc, getFirestore } from "firebase/firestore";
+
 import {
   HiOutlineUserGroup,
   HiCurrencyDollar,
@@ -137,6 +140,7 @@ const TopCourses = ({ topCourses }) => (
 );
 
 const Report = () => {
+
   const [stats, setStats] = useState(null);
   const [filters, setFilters] = useState({
     month: "all",
@@ -145,11 +149,49 @@ const Report = () => {
   });
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(null);
+   const [authorized, setAuthorized] = useState(false);
+
+ const auth = getAuth();
+  const db = getFirestore();
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      const user = auth.currentUser;
+      if (!user) {
+        setAuthorized(false);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists() && userDoc.data().isAdmin) {
+          setAuthorized(true);
+        } else {
+          setAuthorized(false);
+        }
+      } catch (error) {
+        console.error("Error checking admin role:", error);
+        setAuthorized(false);
+      }
+
+      setLoading(false);
+    };
+
+    checkAdmin();
+  }, [auth, db]);
+
+  if (loading) return <div>Loading...</div>;
+
+  if (!authorized) {
+    return <div>🚫 You are not authorized to view this page.</div>;
+  }
+
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("http://localhost:5000/api/report", { params: filters });
+      const res = await axios.get("/api/report", { params: filters });
       setStats(res.data || {});
       setLastUpdated(new Date());
     } catch (error) {

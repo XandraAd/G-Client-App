@@ -1,25 +1,34 @@
+// backend/routes/report.js
 import express from "express";
 import admin from "firebase-admin";
 
 const db = admin.firestore();
 const router = express.Router();
 
+/**
+ * GET /api/admin/reports
+ * Returns a summary of courses: total count + per-category distribution
+ */
 router.get("/", async (req, res) => {
   try {
-    console.log("Fetching courses from Firestore...");
+    console.log("📊 Fetching courses report from Firestore...");
 
-    // Get all courses
     const snapshot = await db.collection("courses").get();
     console.log("Snapshot size:", snapshot.size);
 
     if (snapshot.empty) {
       return res.json({
+        success: true,
         totalCourses: 0,
         categoryPerformance: []
       });
     }
 
-    const courses = snapshot.docs.map(doc => doc.data());
+    // Extract course data
+    const courses = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
     const totalCourses = courses.length;
 
     // Count courses per category
@@ -29,6 +38,7 @@ router.get("/", async (req, res) => {
       categoryCounts[category] = (categoryCounts[category] || 0) + 1;
     });
 
+    // Convert to array format
     const categoryPerformance = Object.entries(categoryCounts).map(
       ([category, count]) => ({
         category,
@@ -37,12 +47,13 @@ router.get("/", async (req, res) => {
     );
 
     res.json({
+      success: true,
       totalCourses,
       categoryPerformance
     });
 
   } catch (error) {
-    console.error("Error fetching courses:", error);
+    console.error("❌ Error fetching courses:", error);
     res.status(500).json({
       success: false,
       error: "Failed to fetch report data",
@@ -52,5 +63,6 @@ router.get("/", async (req, res) => {
 });
 
 export default router;
+
 
 
