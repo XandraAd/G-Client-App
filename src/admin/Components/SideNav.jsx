@@ -95,14 +95,14 @@ const {currentUser}=useAuth();
             aria-label="Edit profile"
           >
             <img
-              src={currentUser?.photoURL || AdminImg}
+              src={currentUser.isAdmin?.photoURL || AdminImg}
               alt="Admin avatar"
               className="w-8 h-8 rounded-full object-cover"
             />
           </button>
           <div className="leading-tight">
-            <h6 className="font-semibold text-sm">{user.name || "Admin"}</h6>
-            <p className="text-[10px]">{user.email || "Loading"}</p>
+            <h6 className="font-semibold text-sm">{currentUser.name || "Admin"}</h6>
+            <p className="text-[10px]">{currentUser.email || "Loading"}</p>
           </div>
         </div>
         <button onClick={handleLogout} disabled={isLoading}>

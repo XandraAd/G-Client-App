@@ -1,6 +1,14 @@
 import React from "react";
 
-const LatestInvoice = ({ invoices }) => {
+const LatestInvoice = ({ invoices,users }) => {
+   // Create a map of userId -> updated user data
+  const userMap = users
+    ? users.reduce((map, user) => {
+        map[user.id] = user;
+        return map;
+      }, {})
+    : {};
+
   // Sort invoices by date to get the latest ones
   const latestInvoices = invoices
     .sort((a, b) => {
@@ -28,13 +36,31 @@ const LatestInvoice = ({ invoices }) => {
   };
 
   // Get customer name from various possible fields
+ // ✅ Always get the latest name from users collection
   const getCustomerName = (invoice) => {
-    return invoice.learnerName || invoice.customerName || invoice.userName || invoice.name || "Unknown Customer";
+    const user = userMap[invoice.userId]; // link by userId
+    if (user) {
+      return `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.name || "Unknown";
+    }
+    return (
+      invoice.learnerName ||
+      invoice.customerName ||
+      invoice.userName ||
+      invoice.name ||
+      "Unknown Customer"
+    );
   };
 
   // Get customer email from various possible fields
   const getCustomerEmail = (invoice) => {
-    return invoice.learnerEmail || invoice.customerEmail || invoice.email || "No email";
+    const user = userMap[invoice.userId];
+    if (user) return user.email || "No email";
+    return (
+      invoice.learnerEmail ||
+      invoice.customerEmail ||
+      invoice.email ||
+      "No email"
+    );
   };
 
   return (

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
-  signInWithEmailAndPassword,
+  
   signInWithPopup,
   GoogleAuthProvider,
   signOut,
@@ -11,6 +11,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { FcGoogle } from "react-icons/fc";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { IoIosArrowRoundForward } from "react-icons/io";
+import { learnerSignIn } from "../../../admin/Config/auth.js";
 
 const LearnerSignIn = ({ switchForm }) => {
   const [email, setEmail] = useState("");
@@ -21,15 +22,29 @@ const LearnerSignIn = ({ switchForm }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // ✅ redirect once Firebase updates the learner
+  // ✅ handle role check on login
+  const checkRoleAndRedirect = async (user) => {
+    const userDoc = await getDoc(doc(db, "users", user.uid));
+    if (userDoc.exists()) {
+      const role = userDoc.data().role;
+      if (role === "learner") {
+        const redirectTo = location.state?.redirectTo || "/";
+        navigate(redirectTo, { replace: true });
+      } else {
+        // ❌ Prevent admin or other roles from logging in here
+        await signOut(auth);
+        setError("Access denied. Learner account required.");
+      }
+    } else {
+      await signOut(auth);
+      setError("No account record found. Please sign up first.");
+    }
+  };
+
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-        if (userDoc.exists() && userDoc.data().role === "learner") {
-          const redirectTo = location.state?.redirectTo || "/learner";
-          navigate(redirectTo, { replace: true });
-        }
+        checkRoleAndRedirect(user);
       }
     });
     return () => unsubscribe();
@@ -41,8 +56,8 @@ const LearnerSignIn = ({ switchForm }) => {
     setLoading(true);
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      // ❌ don’t navigate here – the effect will handle it
+      const { user } = await learnerSignIn( email, password);
+      await checkRoleAndRedirect(user);
     } catch (error) {
       console.error("Sign In Error:", error.message);
       setError(error.message);
@@ -55,8 +70,8 @@ const LearnerSignIn = ({ switchForm }) => {
     setError("");
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
-      // ❌ same here, let the effect redirect
+      const { user } = await signInWithPopup(auth, provider);
+      await checkRoleAndRedirect(user);
     } catch (error) {
       console.error("Google Sign In Error:", error.message);
       setError(error.message);

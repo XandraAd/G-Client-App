@@ -1,15 +1,46 @@
+// src/admin/Pages/Invoices.js
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { getFirestore, doc, getDoc } from "firebase/firestore";
+
 import { CiSearch } from "react-icons/ci";
 import AddInvoices from "../Components/forms/AddInvoices";
 import ReactModal from "react-modal";
 import { FiEdit2 } from "react-icons/fi";
 import { MdDeleteOutline } from "react-icons/md";
 
+const db = getFirestore();
+
+function toMillis(anyDate) {
+  if (!anyDate) return 0;
+  if (typeof anyDate === "number") return anyDate;
+  // Firestore Timestamp-like
+  if (anyDate._seconds) return anyDate._seconds * 1000;
+  if (anyDate.seconds) return anyDate.seconds * 1000;
+  if (typeof anyDate.toDate === "function") return anyDate.toDate().getTime();
+  // ISO/string
+  const t = new Date(anyDate).getTime();
+  return Number.isNaN(t) ? 0 : t;
+}
+
+function formatDate(anyDate) {
+  const ms = toMillis(anyDate);
+  return ms ? new Date(ms).toLocaleDateString() : "—";
+}
+
+function formatAmountDisplay(amount, currency) {
+  const n = typeof amount === "number" ? amount : parseFloat(amount || 0);
+  const c = currency || "GHS";
+  if (Number.isNaN(n)) return "—";
+  return c === "GHS" ? `GHS ${n.toFixed(2)}` : `$${n.toFixed(2)}`;
+}
+
 const Invoices = () => {
   const [query, setQuery] = useState("");
   const [filteredInvoices, setFilteredInvoices] = useState([]);
   const [invoices, setInvoices] = useState([]);
+  const [nameCache, setNameCache] = useState({}); // userId -> latest name
+
   const [isAddInvoiceModalOpen, setIsAddInvoiceModalOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -27,32 +58,74 @@ const Invoices = () => {
     currentPage * itemsPerPage
   );
 
+  // 🔹 Resolve latest learner name from Firestore users/{userId}
+  const fetchAndCacheName = async (userId) => {
+    if (!userId) return "—";
+    if (nameCache[userId]) return nameCache[userId];
+    try {
+      const snap = await getDoc(doc(db, "users", userId));
+      let name = "—";
+      if (snap.exists()) {
+        const d = snap.data() || {};
+        name =
+          d.displayName ||
+          [d.firstName, d.lastName].filter(Boolean).join(" ").trim() ||
+          d.learnerName ||
+          "—";
+      }
+      setNameCache((p) => ({ ...p, [userId]: name }));
+      return name;
+    } catch (e) {
+      console.error("Error fetching user name:", e);
+      return "—";
+    }
+  };
+
+  const preloadNames = (invList) => {
+    // Kick off fetches in the background (no await needed)
+    const ids = Array.from(
+      new Set(invList.map((i) => i.userId).filter(Boolean))
+    );
+    ids.forEach((id) => {
+      if (!nameCache[id]) fetchAndCacheName(id);
+    });
+  };
+
   const fetchInvoices = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/invoices");
-      const sorted = res.data.sort(
-        (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
+      const res = await axios.get("/api/invoices");
+      const list = Array.isArray(res.data) ? res.data : [];
+
+      // Robust sort by createdAt (handles timestamp object or string)
+      const sorted = [...list].sort(
+        (a, b) => toMillis(b.createdAt) - toMillis(a.createdAt)
       );
+
       setInvoices(sorted);
       setFilteredInvoices(sorted);
+      preloadNames(sorted);
     } catch (error) {
       console.error("Failed to fetch invoices:", error);
+      setInvoices([]);
+      setFilteredInvoices([]);
     }
   };
 
   useEffect(() => {
     fetchInvoices();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSearch = (e) => {
-    const searchQuery = e.target.value.trim().toLowerCase();
-    setQuery(searchQuery);
+    const q = e.target.value.trim().toLowerCase();
+    setQuery(q);
 
     const result = invoices.filter((inv) => {
+      const latestName = nameCache[inv.userId] || inv.learnerName || "";
       return (
-        inv.learnerName?.toLowerCase().includes(searchQuery) ||
-        inv.email?.toLowerCase().includes(searchQuery) ||
-        inv.status?.toLowerCase().includes(searchQuery)
+        latestName.toLowerCase().includes(q) ||
+        inv.email?.toLowerCase().includes(q) ||
+        inv.status?.toLowerCase().includes(q)
       );
     });
 
@@ -109,7 +182,7 @@ const Invoices = () => {
         }}
         className="rounded-lg p-6 w-full max-w-md mx-auto mt-20 outline-none relative"
         contentLabel="Add New Invoice"
-        overlayClassName="fixed inset-0  bg-opacity-50 flex items-center justify-center z-50"
+        overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
       >
         <AddInvoices
           onClose={() => {
@@ -124,13 +197,13 @@ const Invoices = () => {
       </ReactModal>
 
       <section className="py-6 min-h-full mb-10">
-        <div className="grid grid-cols-5 text-sm font-medium text-gray-600 mb-2 px-4">
+        <div className="grid grid-cols-6 text-sm font-medium text-gray-600 mb-2 px-4">
           <p>Learner</p>
           <p className="text-center">Email Address</p>
-          <p className="text-center">Due Date</p>
+          <p className="text-center">Date</p>
           <p className="text-center">Amount</p>
           <p className="text-center">Status</p>
-          <p className="text-center"> </p>
+          <p className="text-center">Actions</p>
         </div>
 
         {filteredInvoices.length === 0 ? (
@@ -140,43 +213,53 @@ const Invoices = () => {
         ) : (
           <div className="space-y-4">
             {paginatedInvoices.map((invoice) => {
+              const latestName = nameCache[invoice.userId] || invoice.learnerName || "—";
+              const amountDisplay =
+                invoice.amountDisplay ||
+                formatAmountDisplay(invoice.amount, invoice.currency);
+
               let statusClass = "";
-              if (invoice.status === "Paid") {
-                statusClass = "bg-green-100 text-green-800";
-              } else if (invoice.status === "Overdue") {
-                statusClass = "bg-red-100 text-red-800";
-              } else {
-                statusClass = "bg-yellow-100 text-yellow-800";
-              }
+              if (invoice.status === "Paid") statusClass = "bg-green-100 text-green-800";
+              else if (invoice.status === "Overdue") statusClass = "bg-red-100 text-red-800";
+              else statusClass = "bg-yellow-100 text-yellow-800";
+
               return (
                 <div
                   key={invoice.id}
-                  className="grid grid-cols-5 items-center px-4 py-3 shadow-sm rounded-lg bg-white hover:shadow-md transition"
+                  className="grid grid-cols-6 items-center px-4 py-3 shadow-sm rounded-lg bg-white hover:shadow-md transition"
                 >
+                  {/* Learner Name (live) */}
                   <div className="text-gray-800 font-semibold">
-                    {invoice.learnerName}
-                  </div>
-                  <div className="text-center text-sm text-gray-600">
-                    {invoice.email}
-                  </div>
-                  <div className="text-center text-sm text-gray-500">
-                    {invoice.dueDate && invoice.dueDate !== "—"
-                      ? new Date(invoice.dueDate).toLocaleDateString()
-                      : "—"}
+                    {latestName}
                   </div>
 
-                  <div className="text-center text-sm text-gray-700">
-                    {invoice.amountDisplay}
+                  {/* Email */}
+                  <div className="text-center text-sm text-gray-600">
+                    {invoice.email || invoice.learnerEmail || "—"}
                   </div>
-                  <div className="flex justify-center gap-2">
-                    <span
-                      className={`text-sm font-medium rounded px-2 py-1 ${statusClass}`}
-                    >
-                      {invoice.status}
+
+                  {/* Date */}
+                  <div className="text-center text-sm text-gray-500">
+                    {formatDate(invoice.createdAt)}
+                  </div>
+
+                  {/* Amount */}
+                  <div className="text-center text-sm text-gray-700">
+                    {amountDisplay}
+                  </div>
+
+                  {/* Status */}
+                  <div className="flex justify-center">
+                    <span className={`text-sm font-medium rounded px-2 py-1 ${statusClass}`}>
+                      {invoice.status || "pending"}
                     </span>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex justify-center gap-2">
                     <FiEdit2
                       className="text-green-700 text-[20px] p-1 rounded-full hover:bg-green-100 cursor-pointer"
-                      onClick={() => handleEdit(invoice)}
+                      onClick={() => setIsEditModalOpen(true) || setSelectedInvoice(invoice)}
                     />
                     <MdDeleteOutline
                       className="text-red-600 text-[20px] p-1 rounded-full hover:bg-red-100 cursor-pointer"
@@ -190,7 +273,7 @@ const Invoices = () => {
         )}
 
         {totalPages > 1 && (
-          <div className="flex justify-center items-center gap-2 mt-6 border">
+          <div className="flex justify-center items-center gap-2 mt-6">
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
@@ -239,3 +322,4 @@ const Invoices = () => {
 };
 
 export default Invoices;
+

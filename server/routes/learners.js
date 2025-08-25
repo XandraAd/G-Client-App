@@ -20,116 +20,122 @@ const extractUserName = (userData) => {
   return "Unknown Learner";
 };
 
-// get all learners
+
+// get all learners - UPDATED TRACK EXTRACTION
 router.get("/", async (req, res) => {
   try {
     const snapshot = await db.collection("users").get();
     if (snapshot.empty) return res.status(200).json([]);
 
-    const learners = await Promise.all(snapshot.docs.map(async (doc) => {
+    const allLearners = await Promise.all(snapshot.docs.map(async (doc) => {
       try {
         const data = doc.data();
         
         // Check if user has made payments
         const paymentsSnapshot = await db.collection("payments")
           .where("userId", "==", doc.id)
-          .where("status", "in", ["completed", "paid", "success", "pending"])
+          .where("status", "in", ["completed", "paid", "success", "pending", "succeeded"])
           .get();
         
         const hasPayments = !paymentsSnapshot.empty;
-        
-        if (!hasPayments) {
-          return null; // Skip users without payments
-        }
-        
+
         // Extract track data from payments
         let allTracks = [];
         let totalAmount = 0;
         
-        for (const paymentDoc of paymentsSnapshot.docs) {
-          const paymentData = paymentDoc.data();
-          
-          // Get track data from cartItems (modern format)
-          if (Array.isArray(paymentData.cartItems)) {
-            paymentData.cartItems.forEach(item => {
-              const trackId = item.id || item.trackId || item.courseId;
-              if (trackId) {
-                allTracks.push({
-                  id: trackId,
-                  name: item.name || item.title || item.trackName || "Unknown Track",
-                  price: item.price || item.amount || 0,
-                  description: item.description || "",
-                  image: item.image || item.thumbnail || ""
-                });
-              }
-            });
-          }
+        if (hasPayments) {
+          for (const paymentDoc of paymentsSnapshot.docs) {
+            const paymentData = paymentDoc.data();
+            
+            // DEBUG: Log payment data to see structure
+            console.log(`Payment data for user ${doc.id}:`, paymentData);
+            
+            // Method 1: Check for cartItems (most common)
+            if (Array.isArray(paymentData.cartItems)) {
+              paymentData.cartItems.forEach(item => {
+                const trackId = item.id || item.trackId || item.courseId || item.productId;
+                if (trackId) {
+                  allTracks.push({
+                    id: trackId,
+                    name: item.name || item.title || item.trackName || item.productName || "Unknown Track",
+                    price: item.price || item.amount || item.value || 0,
+                    description: item.description || "",
+                    image: item.image || item.thumbnail || item.imageUrl || ""
+                  });
+                }
+              });
+            }
 
-          // Check for items array (alternative field name)
-          if (Array.isArray(paymentData.items)) {
-            paymentData.items.forEach(item => {
-              const trackId = item.id || item.trackId || item.courseId;
-              if (trackId) {
+            // Method 2: Check for items array
+            if (Array.isArray(paymentData.items)) {
+              paymentData.items.forEach(item => {
+                const trackId = item.id || item.trackId || item.courseId || item.productId;
+                if (trackId) {
+                  allTracks.push({
+                    id: trackId,
+                    name: item.name || item.title || item.trackName || item.productName || "Unknown Track",
+                    price: item.price || item.amount || item.value || 0,
+                    description: item.description || "",
+                    image: item.image || item.thumbnail || item.imageUrl || ""
+                  });
+                }
+              });
+            }
+            
+            // Method 3: Check for single item fields (common in some payment systems)
+            if (paymentData.trackId || paymentData.courseId || paymentData.productId) {
+              allTracks.push({
+                id: paymentData.trackId || paymentData.courseId || paymentData.productId,
+                name: paymentData.trackName || paymentData.courseName || paymentData.productName || "Unknown Track",
+                price: paymentData.amount || paymentData.price || 0,
+                description: paymentData.description || ""
+              });
+            }
+            
+            // Method 4: Check metadata field (common in Stripe and other payment processors)
+            if (paymentData.metadata) {
+              let metadata = paymentData.metadata;
+              if (typeof metadata === 'string') {
+                try {
+                  metadata = JSON.parse(metadata);
+                } catch (e) {
+                  console.log('Could not parse metadata string:', metadata);
+                }
+              }
+              
+              if (metadata.trackId || metadata.courseId || metadata.productId) {
                 allTracks.push({
-                  id: trackId,
-                  name: item.name || item.title || item.trackName || "Unknown Track",
-                  price: item.price || item.amount || 0,
-                  description: item.description || "",
-                  image: item.image || item.thumbnail || ""
+                  id: metadata.trackId || metadata.courseId || metadata.productId,
+                  name: metadata.trackName || metadata.courseName || metadata.productName || "Unknown Track",
+                  price: paymentData.amount || 0,
+                  description: metadata.description || ""
                 });
               }
-            });
-          }
-          
-          // Check for metadata (common in payment systems)
-          const metadata = paymentData.metadata || {};
-          const stringMetadata = typeof metadata === 'string' ? JSON.parse(metadata) : metadata;
-          
-          if (stringMetadata.trackId || stringMetadata.courseId) {
-            allTracks.push({
-              id: stringMetadata.trackId || stringMetadata.courseId,
-              name: stringMetadata.trackName || stringMetadata.courseName || "Unknown Track",
-              price: paymentData.amount || 0,
-              description: stringMetadata.description || ""
-            });
-          }
-          
-          // Check for direct track/course fields
-          if (paymentData.trackId) {
-            allTracks.push({
-              id: paymentData.trackId,
-              name: paymentData.trackName || "Unknown Track",
-              price: paymentData.amount || 0
-            });
-          }
-          
-          if (paymentData.courseId) {
-            allTracks.push({
-              id: paymentData.courseId,
-              name: paymentData.courseName || "Unknown Track",
-              price: paymentData.amount || 0
-            });
-          }
-          
-          // Fallback: if no track data found but payment exists, create a generic track
-          if (allTracks.length === 0 && paymentData.amount) {
-            allTracks.push({
-              id: `payment-${paymentDoc.id}`,
-              name: "Paid Course",
-              price: paymentData.amount || 0,
-              description: "Course purchased via payment"
-            });
-          }
-          
-          if (paymentData.amount) {
-            totalAmount += parseFloat(paymentData.amount);
+            }
+            
+            // Method 5: If no track data found but payment exists, create generic entry
+            if (allTracks.length === 0 && (paymentData.amount || paymentData.price)) {
+              allTracks.push({
+                id: `payment-${paymentDoc.id}`,
+                name: paymentData.description || "Paid Course",
+                price: paymentData.amount || paymentData.price || 0,
+                description: "Course purchased via payment"
+              });
+            }
+            
+            // Add to total amount
+            if (paymentData.amount) {
+              totalAmount += parseFloat(paymentData.amount);
+            } else if (paymentData.price) {
+              totalAmount += parseFloat(paymentData.price);
+            }
           }
         }
         
         // Remove duplicate tracks by ID
         const uniqueTracksMap = new Map();
         allTracks.forEach(track => {
-          if (!uniqueTracksMap.has(track.id)) {
+          if (track.id && !uniqueTracksMap.has(track.id)) {
             uniqueTracksMap.set(track.id, track);
           }
         });
@@ -145,7 +151,7 @@ router.get("/", async (req, res) => {
           email: data.email || "",
           tracks: uniqueTracks,
           trackCount: uniqueTracks.length,
-          enrolled: uniqueTracks.length > 0,
+          enrolled: hasPayments,
           amount: totalAmount,
           currency: data.currency || "GHS",
           gender: data.gender || "Not specified",
@@ -154,8 +160,9 @@ router.get("/", async (req, res) => {
           createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(),
           phone: data.phone || data.phoneNumber || "Not provided",
           location: data.location || data.country || data.city || "Not specified",
-          status: uniqueTracks.length > 0 ? "Enrolled" : "Pending",
-          paymentCount: paymentsSnapshot.size
+          status: hasPayments ? "Enrolled" : "Not Enrolled",
+          paymentCount: paymentsSnapshot.size,
+          hasPayments: hasPayments
         };
       } catch (error) {
         console.error(`Error processing user ${doc.id}:`, error);
@@ -163,10 +170,13 @@ router.get("/", async (req, res) => {
       }
     }));
 
-    // Filter out null values and return only paying learners
-    const payingLearners = learners.filter(l => l !== null);
+    // Filter out null values
+    const validLearners = allLearners.filter(l => l !== null);
     
-    res.status(200).json(payingLearners);
+    // DEBUG: Log the final learners data
+    console.log("Final learners data:", validLearners);
+    
+    res.status(200).json(validLearners);
   } catch (error) {
     console.error("Failed to fetch learners:", error);
     res.status(500).json({ message: "Failed to fetch learners", error: error.message });
@@ -190,9 +200,11 @@ router.get("/debug-payments/:userId", async (req, res) => {
     
     res.json({
       userId,
+   
       paymentCount: payments.length,
       payments: payments.map(p => ({
         id: p.id,
+        learnerName:p.learnerName,
         amount: p.amount,
         status: p.status,
         cartItems: p.cartItems,

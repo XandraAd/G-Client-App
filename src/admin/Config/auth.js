@@ -95,7 +95,7 @@ export const learnerSignIn = async (email, password) => {
     const uid = userCredential.user.uid;
     const userDoc = await getDoc(doc(db, "users", uid));
 
-    if (!userDoc.exists() || !userDoc.data().isLearner) {
+    if (!userDoc.exists() || !userDoc.data().role === "learner") {
       await auth.signOut();
       throw new Error("User is not a learner");
     }

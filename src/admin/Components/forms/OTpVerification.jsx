@@ -38,7 +38,7 @@ const OTPVerification = () => {
         console.log("Email verified!");
         setMessage("Email verified successfully!");
         localStorage.removeItem("otpEmail"); // ✅ Clean up
-        navigate("/dashboard");
+        navigate("/admin");
       } else {
         setError("Incorrect or expired OTP");
       }

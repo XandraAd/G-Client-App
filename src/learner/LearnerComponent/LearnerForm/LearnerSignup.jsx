@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { FaUser, FaEnvelope, FaLock } from "react-icons/fa";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
-import { IoIosArrowRoundForward } from "react-icons/io";
+
  import { doc, setDoc } from "firebase/firestore";
 
 

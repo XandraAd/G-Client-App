@@ -70,7 +70,7 @@ const Courses = () => {
 
   const handleDelete = async (courseId) => {
     try {
-      await axios.delete(`http://localhost:5000/api/courses/${courseId}`);
+      await axios.delete(`/api/courses/${courseId}`);
       const updated = courses.filter((course) => course.id !== courseId);
       setCourses(updated);
       setFilteredCourses(updated);
