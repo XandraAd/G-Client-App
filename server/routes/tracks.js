@@ -1,6 +1,6 @@
 //express routes
 import express from "express";
-import { Track } from "../models/Tracks.js";
+//import { Track } from "../models/Tracks.js";
 import { db } from "../firebase-admin.js";
 import { cloudinary } from "../utils/cloudinary.js";
 
@@ -11,7 +11,8 @@ const router = express.Router();
 // GET all tracks
 router.get("/", async (req, res) => {
   try {
-    const snapshot = await Track.get();
+   const snapshot = await db.collection("tracks").get();
+
     const tracks = snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),

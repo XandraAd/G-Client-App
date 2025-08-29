@@ -12,7 +12,6 @@ import {
 } from "react-icons/hi";
 import {
   LiaFileInvoiceSolid,
-
 } from "react-icons/lia";
 import { FiAward, FiStar } from "react-icons/fi";
 import StatCard from "../Components/report/ReportStatCard";
@@ -21,7 +20,7 @@ import RecentActivity from "../Components/report/ActivityTable";
 import FilterPanel from "../Components/report/CourseInsights";
 import SkeletonLoader from "../Components/SkeletonLoader";
 import InvoicePieChart from "../Components/report/PieChart";
-import CategoryPerformanceChart from "../Components/report/CategoryPerformanceChart"; // new chart component
+import CategoryPerformanceChart from "../Components/report/CategoryPerformanceChart";
 
 // Loading skeleton
 const ReportLoadingSkeleton = () => (
@@ -140,20 +139,19 @@ const TopCourses = ({ topCourses }) => (
 );
 
 const Report = () => {
-
   const [stats, setStats] = useState(null);
-  const [filters, setFilters] = useState({
-    month: "all",
-    course: "all",
-    status: "all"
-  });
+  const [filters, setFilters] = useState({ month: "all", course: "all", status: "all" });
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(null);
-   const [authorized, setAuthorized] = useState(false);
+  const [authorized, setAuthorized] = useState(false);
+  const [learners, setLearners] = useState([]);
+  const [invoices, setInvoices] = useState([]);
+  const [tracks, setTracks] = useState([]);
 
- const auth = getAuth();
+  const auth = getAuth();
   const db = getFirestore();
 
+  // 🔹 Check admin
   useEffect(() => {
     const checkAdmin = async () => {
       const user = auth.currentUser;
@@ -165,33 +163,50 @@ const Report = () => {
 
       try {
         const userDoc = await getDoc(doc(db, "users", user.uid));
-        if (userDoc.exists() && userDoc.data().isAdmin) {
-          setAuthorized(true);
-        } else {
-          setAuthorized(false);
-        }
+        console.log("UserDoc:", userDoc.data());
+        setAuthorized(userDoc.exists() && userDoc.data().isAdmin === true);
       } catch (error) {
         console.error("Error checking admin role:", error);
         setAuthorized(false);
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     };
 
     checkAdmin();
   }, [auth, db]);
 
-  if (loading) return <div>Loading...</div>;
+  // 🔹 Fetch dashboard data
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const [learnersRes, invoicesRes, tracksRes] = await Promise.all([
+          axios.get("http://localhost:5000/api/learners"),
+          axios.get("http://localhost:5000/api/invoices"),
+          axios.get("http://localhost:5000/api/tracks"),
+        ]);
 
-  if (!authorized) {
-    return <div>🚫 You are not authorized to view this page.</div>;
-  }
+        setLearners(learnersRes.data);
+        setInvoices(invoicesRes.data);
+        setTracks(tracksRes.data);
+      } catch (err) {
+        console.error("Dashboard data fetch failed:", err);
+      }
+    };
 
+    if (authorized) {
+      fetchDashboardData();
+    }
+  }, [authorized]);
 
+  // 🔹 Fetch stats
   const fetchData = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("/api/report", { params: filters });
+      const res = await axios.get("http://localhost:5000/api/report", {
+        params: filters
+      });
+      console.log("Report data:", res.data);
       setStats(res.data || {});
       setLastUpdated(new Date());
     } catch (error) {
@@ -202,13 +217,14 @@ const Report = () => {
   };
 
   useEffect(() => {
-    fetchData();
-    // eslint-disable-next-line
-  }, [filters]);
+    if (authorized) {
+      fetchData();
+    }
+  }, [filters, authorized]);
 
-  if (loading && !stats) {
-    return <ReportLoadingSkeleton />;
-  }
+  // 🔹 Conditional rendering AFTER hooks
+  if (loading && !stats) return <ReportLoadingSkeleton />;
+  if (!authorized) return <div>🚫 You are not authorized to view this page.</div>;
 
   return (
     <div className="px-6 py-8">

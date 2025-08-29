@@ -78,25 +78,6 @@ const cleanObject = (obj) => {
     checkPaymentStatus();
   }, [params, navigate]);
 
-// ---- Utility: prepare data for API (remove Firestore-specific values) ----
-
-{/**const prepareForAPI = (obj) => {
-  const cleaned = Object.fromEntries(
-    Object.entries(obj).filter(([_, v]) => {
-      // Remove Firestore serverTimestamp and other special values
-      if (v && typeof v === 'object') {
-        // Keep regular objects but remove Firestore-specific ones
-        if (v.constructor.name === 'Timestamp' || 
-            (v.constructor.name === 'Object' && Object.keys(v).length === 0)) {
-          return false;
-        }
-      }
-      return v !== undefined;
-    })
-  );
-  
-  return cleaned;
-}; */}
 
 
   useEffect(() => {
@@ -152,6 +133,8 @@ const cleanObject = (obj) => {
 
   // ---- Form data ----
   const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
     fullName: "",
     email: "",
     course: "",
@@ -173,7 +156,8 @@ const updateUserProfile = async (userId, formData) => {
       gender: formData.gender,
       pwdStatus: formData.pwdStatus,
       disabilityOther: formData.disabilityOther,
-      fullName: formData.fullName,
+      fullName:  formData.fullName || currentLearner.displayName || "Unknown",
+
       updatedAt: serverTimestamp()
     });
     console.log("User profile updated successfully");
@@ -189,6 +173,8 @@ const updateUserProfile = async (userId, formData) => {
     const fetchProfile = async () => {
       if (!currentLearner) {
         setFormData({
+          firstName: "",
+          lastName: "", 
           fullName: "",
           email: "",
           course: "",
@@ -226,10 +212,18 @@ const updateUserProfile = async (userId, formData) => {
     fetchProfile();
   }, [currentLearner]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+const handleChange = (e) => {
+  const { name, value } = e.target;
+  setFormData((prev) => {
+    const updated = { ...prev, [name]: value };
+    // keep fullName in sync if first/last changes
+    if (name === "firstName" || name === "lastName") {
+      updated.fullName = `${updated.firstName || ""} ${updated.lastName || ""}`.trim();
+    }
+    return updated;
+  });
+};
+
 
 
 
@@ -338,7 +332,9 @@ const handleCheckout = async () => {
  // Build payment data for API
     const paymentDataForAPI = cleanObject({
       userId: currentLearner.uid,
-      learnerName: formData.fullName || currentLearner.displayName || "Unknown",
+    learnerName: formData.fullName || currentLearner.displayName || "Unknown",
+
+
       email: formData.email || currentLearner.email || "No email",
       amount: Number(customAmount),
       gender: formData.gender,

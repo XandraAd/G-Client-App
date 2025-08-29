@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { Link } from "react-router-dom";
-//import { IoPersonOutline } from "react-icons/io5";
+
 
 import { FaCediSign } from "react-icons/fa6";
 import CalendarIcon from "../../assets/icons/calendarIcon.png";

@@ -120,16 +120,13 @@ const LearnerSignUp = ({ switchForm }) => {
 
 
   return (
-   <main className="flex flex-col items-center justify-center px-4 py-12 grow bg-gray-50">
+   <main className="flex flex-col items-center justify-center px-4 py-12 grow ">
   <div
     className="
-      w-full 
-      max-w-md md:max-w-lg lg:max-w-2xl 
-      bg-white shadow-md rounded-xl p-6 
-      space-y-6
+    max-w-md w-full space-y-6
     "
   >
-    <h2 className="text-2xl md:text-3xl font-semibold text-center text-gray-800">
+    <h2 className="text-2xl md:text-3xl font-bold text-center">
       Sign up to get started
     </h2>
 

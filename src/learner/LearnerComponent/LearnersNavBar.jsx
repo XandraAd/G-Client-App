@@ -6,11 +6,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { useLearnerAuth } from "../contexts/LearnerAuthContext";
 import { signOut } from "firebase/auth";
 import { auth } from "../../admin/Config/Firebase";
+import Logo  from "../../assets/icons/logo.png"; 
+import { formatUserData } from "../../admin/utils/user";
 
 const LearnersNavBar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { cartItems } = useCart();
-  const { currentLearner } = useLearnerAuth();
+ const { currentLearner } = useLearnerAuth();
+const learner = formatUserData(currentLearner);
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -26,7 +29,7 @@ const LearnersNavBar = () => {
           {/* Logo */}
           <Link to="/learner" className="flex items-center">
             <img
-              src="/src/assets/icons/logo.png"
+              src={Logo}
               alt="Logo"
               className="h-8 w-auto"
             />
@@ -88,16 +91,16 @@ const LearnersNavBar = () => {
                   >
                     <img
                       src={
-                        currentLearner.photoURL ||
+                        learner.photoURL ||
                         `https://ui-avatars.com/api/?name=${
-                          currentLearner.displayName || currentLearner.email
+                          learner.displayName || learner.email
                         }`
                       }
                       alt="avatar"
                       className="w-8 h-8 rounded-full"
                     />
                     <span className="text-gray-700 font-medium">
-                      {currentLearner.displayName || currentLearner.email}
+                      {learner.name || learner.email}
                     </span>
                   </button>
 

@@ -171,7 +171,11 @@ router.get("/", async (req, res) => {
     }));
 
     // Filter out null values
-    const validLearners = allLearners.filter(l => l !== null);
+   // Keep only users who are actually learners and have enrolled
+const validLearners = allLearners.filter(l => l !== null && l.enrolled);
+
+res.status(200).json(validLearners);
+
     
     // DEBUG: Log the final learners data
     console.log("Final learners data:", validLearners);

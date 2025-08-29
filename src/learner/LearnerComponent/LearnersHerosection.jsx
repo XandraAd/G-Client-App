@@ -14,7 +14,7 @@ const LearnersHerosection = () => {
 
   return (
     <section
-      className="relative flex items-center py-20 min-h-[400px]"
+      className="relative flex items-center min-h-[400px]"
       style={{
         backgroundImage: `url(${HeroBackground})`,
         backgroundSize: "cover",
