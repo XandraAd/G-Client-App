@@ -13,6 +13,7 @@ import LearnerActive from "../../assets/icons/learnerActive.png";
 import InvoiceActive from "../../assets/icons/invoiceActive.png";
 import AdminImg from "../../assets/icons/adminImg.png";
 import { useAuth } from "../contexts/authContext/index"
+import { formatUserData } from "../utils/user";
 
 
 const navItems = [
@@ -52,13 +53,14 @@ const navItems = [
    
 ];
 
-function SideNav({ isOpen, onClose,user}) {
+function SideNav({ isOpen, onClose}) {
   const navigate = useNavigate();
    const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   const [activeRoute, setActiveRoute] = useState(navItems[0].title);
   
 const {currentUser}=useAuth();
+const admin=formatUserData(currentUser,true);
 
 
 
@@ -77,42 +79,53 @@ const {currentUser}=useAuth();
     setActiveRoute(tab);
   };
 
-  const renderUserInfo = () => (
-    <div className="flex flex-col items-start gap-2 px-4 py-3 text-white text-xs">
-      <div className="flex items-center gap-3 w-full justify-between">
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            
-    onClick={() => {
-    console.log("Current pathname:", location.pathname);
-    console.log("Navigating to manage-profile");
-    navigate("manage-profile");
-    // Check what the final URL is after navigation
-    setTimeout(() => console.log("New pathname:", window.location.pathname), 100);
-  }}
-            className="focus:outline-none"
-            aria-label="Edit profile"
-          >
-            <img
-              src={currentUser.isAdmin?.photoURL || AdminImg}
-              alt="Admin avatar"
-              className="w-8 h-8 rounded-full object-cover"
-            />
-          </button>
-          <div className="leading-tight">
-            <h6 className="font-semibold text-sm">{currentUser.name || "Admin"}</h6>
-            <p className="text-[10px]">{currentUser.email || "Loading"}</p>
-          </div>
-        </div>
-        <button onClick={handleLogout} disabled={isLoading}>
-          <img src={LogOutIcon} alt="Logout" className="w-4 h-4" />
+ const renderUserInfo = () => (
+  <div className="flex flex-col items-start gap-2 px-4 py-3 text-white text-xs">
+    <div className="flex items-center gap-3 w-full justify-between">
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => {
+            console.log("Current pathname:", location.pathname);
+            console.log("Navigating to manage-profile");
+            navigate("manage-profile");
+            setTimeout(
+              () => console.log("New pathname:", window.location.pathname),
+              100
+            );
+          }}
+          className="focus:outline-none"
+          aria-label="Edit profile"
+        >
+          <img
+            src={
+            admin?.photoURL || AdminImg
+            }
+            alt="User avatar"
+            className="w-8 h-8 rounded-full object-cover"
+          />
         </button>
+
+        <div className="leading-tight">
+          <h6 className="font-semibold text-sm">
+            {admin?.name || currentUser?.displayName || "User"}
+          </h6>
+          <p className="text-[10px]">
+            {admin?.email || "Loading..."}
+          </p>
+          {/* Show role or admin status */}
+          <p className="text-[10px] italic">
+          {admin?.role || "Admin"}
+          </p>
+        </div>
       </div>
 
-   
+      <button onClick={handleLogout} disabled={isLoading}>
+        <img src={LogOutIcon} alt="Logout" className="w-4 h-4" />
+      </button>
     </div>
-  );
+  </div>
+);
 
   return (
     <>

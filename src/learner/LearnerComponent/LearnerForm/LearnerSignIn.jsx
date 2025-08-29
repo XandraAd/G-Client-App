@@ -83,7 +83,7 @@ const LearnerSignIn = ({ switchForm }) => {
   };
 
   return (
-    <main className="flex flex-col items-center justify-center px-4 py-12 grow border">
+    <main className="flex flex-col items-center justify-center px-4 py-12 grow ">
       <div className="max-w-md w-full space-y-6">
         <h2 className="text-center text-2xl font-bold">
           Log in to continue your learning journey
