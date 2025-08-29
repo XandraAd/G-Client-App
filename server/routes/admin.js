@@ -39,33 +39,29 @@ console.log(user.customClaims);
 });
 
 // routes/admin.js
-router.post('/signup', async (req, res) => {
+router.post("/signup", async (req, res) => {
   try {
-    const { email, password, firstName, lastName } = req.body;
+    const { idToken, ...extraData } = req.body;
 
-    const user = await admin.auth().createUser({
-      email,
-      password,
-      displayName: `${firstName} ${lastName}`,
+    // 1. Verify token
+    const decoded = await admin.auth().verifyIdToken(idToken);
+
+    // 2. User is authenticated, safe to write to Firestore
+    const userId = decoded.uid;
+
+    await db.collection("users").doc(userId).set({
+      email: decoded.email,
+      ...extraData,
+      createdAt: new Date(),
     });
 
-    // Assign admin role via claims
-    await admin.auth().setCustomUserClaims(user.uid, { admin: true });
-
-    // Save profile in Firestore
-    await admin.firestore().collection("users").doc(user.uid).set({
-      email,
-      firstName,
-      lastName,
-      isAdmin: true,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-    });
-
-    res.json({ success: true, uid: user.uid });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.json({ message: "User registered successfully" });
+  } catch (error) {
+    console.error("Signup error:", error);
+    res.status(500).json({ error: "Signup failed" });
   }
 });
+
 
 
 // promote a user as admin
