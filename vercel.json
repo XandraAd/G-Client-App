@@ -12,8 +12,8 @@
       "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "dist",
-        "installCommand": "npm install && npm run build"
+        "installCommand": "npm install && npm run build",
+        "distDir": "dist"
       }
     }
   ],
@@ -21,6 +21,9 @@
     {
       "src": "/api/(.*)",
       "dest": "/server/index.js"
+    },
+    {
+      "handle": "filesystem"
     },
     {
       "src": "/(.*)",
