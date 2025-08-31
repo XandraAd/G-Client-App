@@ -106,9 +106,9 @@ const Courses = () => {
       <ReactModal
         isOpen={isAddCourseModalOpen}
         onRequestClose={() => setIsAddCourseModalOpen(false)}
-        className="rounded-lg p-6 w-full max-w-md mx-auto  outline-none relative h-[70%] border"
+        className="rounded-lg p-6 w-full max-w-md mx-auto  outline-none relative h-[70%] "
         contentLabel="Add New Course"
-        overlayClassName="fixed inset-0  bg-opacity-50 flex items-center justify-center z-50 border"
+        overlayClassName="fixed inset-0  backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50 "
       >
         <AddCourses
           onClose={() => setIsAddCourseModalOpen(false)}
@@ -125,7 +125,7 @@ const Courses = () => {
         }}
         className="rounded-lg p-6 w-full max-w-md mx-auto mt-20 outline-none relative"
         contentLabel="Edit Course"
-        overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+        overlayClassName="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50"
       >
         <AddCourses
           onClose={() => {

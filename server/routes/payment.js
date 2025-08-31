@@ -14,19 +14,8 @@ router.use((req, res, next) => {
   next();
 });
 
-/**
- * Helper to format amounts
- */
-function formatAmount(amount, currency) {
-  const numericAmount =
-    typeof amount === "number" ? amount : parseFloat(amount || 0);
-  if (currency === "GHS") {
-    return `GHS ${numericAmount.toFixed(2)}`;
-  } else if (currency === "USD") {
-    return `$${numericAmount.toFixed(2)}`;
-  }
-  return `${numericAmount.toFixed(2)} ${currency}`;
-}
+
+
 
 /**
  * Health check endpoint

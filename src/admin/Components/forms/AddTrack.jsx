@@ -113,12 +113,12 @@ const handleCropSave = async () => {
     }
   };
 
-  return (
-    <div className="flex items-center justify-center h-[500px]">
-      {showCropModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 z-[1000] flex items-center justify-center">
-          <div className="bg-white rounded-lg shadow-lg p-4 w-[90%] md:w-[400px] relative">
-             <div className="relative w-full h-[300px] md:h-[350px]">
+ return (
+  <div className="flex items-center justify-center min-h-screen p-4">
+    {showCropModal && (
+      <div className="fixed inset-0 bg-black bg-opacity-70 z-[1000] flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg shadow-lg p-4 w-full max-w-md md:max-w-lg lg:max-w-xl relative">
+          <div className="relative w-full h-[250px] sm:h-[300px] md:h-[350px]">
             <Cropper
               image={imageSrc}
               crop={crop}
@@ -128,139 +128,151 @@ const handleCropSave = async () => {
               onZoomChange={setZoom}
               onCropComplete={onCropComplete}
             />
-            </div>
-            <div className="mt-4 flex justify-between">
-              <button
-                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-                onClick={() => {
-                  setShowCropModal(false);
-                  setImageSrc(null);
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                onClick={handleCropSave}
-              >
-                Save Crop
-              </button>
-            </div>
+          </div>
+          <div className="mt-4 flex flex-col sm:flex-row justify-between gap-2">
+            <button
+              className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 flex-1 sm:flex-none"
+              onClick={() => {
+                setShowCropModal(false);
+                setImageSrc(null);
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex-1 sm:flex-none"
+              onClick={handleCropSave}
+            >
+              Save Crop
+            </button>
           </div>
         </div>
-      )}
+      </div>
+    )}
 
-      <div className="w-full max-w-md h-[90vh] bg-white rounded-lg shadow-lg overflow-hidden relative">
-  <div className="h-full overflow-y-auto p-6">
+    <div className="w-full max-w-md lg:max-w-lg xl:max-w-xl h-auto max-h-[90vh] bg-white rounded-lg shadow-lg overflow-hidden relative">
+      <div className="h-full overflow-y-auto p-4 sm:p-6">
         <button
           onClick={onClose}
-          className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+          className="absolute top-3 right-3 sm:top-4 sm:right-4 text-gray-500 hover:text-gray-700 text-xl sm:text-2xl"
         >
           ×
         </button>
 
-        <form onSubmit={handleSubmit} className="space-y-4 h-[750px]">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Add new Track</h2>
-  <label className="block">
-    <span className="text-sm text-gray-700 font-medium mb-1 block">Track Name</span>
-          <input
-            type="text"
-            name="trackName"
-            placeholder="Track name"
-            value={addNewTracks.trackName}
-            onChange={handleChange}
-            required
-            className="w-full px-3 py-2 border border-gray-200 rounded-md"
-          />
-          </label>
- 
-
-  <label className="block">
-    <span className="text-sm text-gray-700 font-medium mb-1 block">Price</span>
-          <input
-            type="number"
-            name="price"
-            placeholder="Price"
-            value={addNewTracks.price}
-            onChange={handleChange}
-            required
-            className="w-full px-3 py-2 border border-gray-200 rounded-md"
-          />
-          </label>
-  <label className="block">
-    <span className="text-sm text-gray-700 font-medium mb-1 block">Duration</span>
-          <input
-            type="number"
-            name="duration"
-            placeholder="Duration (weeks)"
-            value={addNewTracks.duration}
-            onChange={handleChange}
-            required
-            className="w-full px-3 py-2 border border-gray-200 rounded-md"
-          />
-          </label>
-  <label className="block">
-    <span className="text-sm text-gray-700 font-medium mb-1 block">Instructor</span>
-          <input
-            type="text"
-            name="instructor"
-            placeholder="Instructor"
-            value={addNewTracks.instructor}
-            onChange={handleChange}
-            required
-            className="w-full px-3 py-2 border border-gray-200 rounded-md"
-          />
-          </label>
-         
-
-         
- <label className="block">
-    <span className="text-sm text-gray-700 font-medium mb-1 block">Picture</span>
-        
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-            className="w-full file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-          />
-
-          {previewImage && (
-            <div className="mt-2">
-              <img
-                src={previewImage}
-                alt="Preview"
-                className="h-32 w-full object-cover rounded-md border border-gray-200"
+        <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4">Add new Track</h2>
+          
+          <div className="grid grid-cols-1 gap-4 md:gap-5">
+            <label className="block">
+              <span className="text-sm text-gray-700 font-medium mb-1 block">Track Name</span>
+              <input
+                type="text"
+                name="trackName"
+                placeholder="Track name"
+                value={addNewTracks.trackName}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
-            </div>
-          )}
-          </label>
+            </label>
 
-           <label className="block">
-    <span className="text-sm text-gray-700 font-medium mb-1 block">Description</span>
-          <textarea
-            name="description"
-            placeholder="Description"
-            value={addNewTracks.description}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-200 rounded-md"
-            rows="3"
-            required
-          />
-          </label>
+            <div className="grid grid-cols-1  gap-4 md:gap-5">
+              <label className="block">
+                <span className="text-sm text-gray-700 font-medium mb-1 block">Price</span>
+                <input
+                  type="number"
+                  name="price"
+                  placeholder="Price"
+                  value={addNewTracks.price}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </label>
+              
+              <label className="block">
+                <span className="text-sm text-gray-700 font-medium mb-1 block">Duration (weeks)</span>
+                <input
+                  type="number"
+                  name="duration"
+                  placeholder="Duration"
+                  value={addNewTracks.duration}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </label>
+            </div>
+
+            <label className="block">
+              <span className="text-sm text-gray-700 font-medium mb-1 block">Instructor</span>
+              <input
+                type="text"
+                name="instructor"
+                placeholder="Instructor"
+                value={addNewTracks.instructor}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </label>
+
+            <label className="block">
+              <span className="text-sm text-gray-700 font-medium mb-1 block">Picture</span>
+              <div className="mt-1 flex flex-col sm:flex-row sm:items-center gap-2">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="w-full file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+              </div>
+
+              {previewImage && (
+                <div className="mt-3">
+                  <img
+                    src={previewImage}
+                    alt="Preview"
+                    className="h-32 w-full object-cover rounded-md border border-gray-200"
+                  />
+                  <p className="text-xs text-gray-500 mt-1 text-center">Image preview</p>
+                </div>
+              )}
+            </label>
+
+            <label className="block">
+              <span className="text-sm text-gray-700 font-medium mb-1 block">Description</span>
+              <textarea
+                name="description"
+                placeholder="Description"
+                value={addNewTracks.description}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                rows="3"
+                required
+              />
+            </label>
+          </div>
 
           <button
             type="submit"
-            className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            className="w-full px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors mt-2"
           >
             Create Track
           </button>
 
-          {message && <p className="text-green-600 text-sm mt-2">{message}</p>}
+          {message && (
+            <p className={`text-sm mt-3 p-2 rounded-md text-center ${
+              message.includes("success") ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+            }`}>
+              {message}
+            </p>
+          )}
         </form>
       </div>
-      </div>
     </div>
-  );
+  </div>
+);
 };
 
 export default AddTracks;

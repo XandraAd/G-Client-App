@@ -12,7 +12,7 @@ const PublicLearnerLayout = () => {
     
 
       {/* Main Content */}
-      <main className="flex-1 container   ">
+      <main >
         <Outlet />
       </main>
 

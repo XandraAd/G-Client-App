@@ -5,7 +5,7 @@ import BannerImage from "../../assets/icons/banner.jpg";
 const LearnerBanner = () => {
   return (
     <div
-      className="relative bg-cover bg-center bg-no-repeat h-[300px] md:h-[400px] grid grid-cols-1 md:grid-cols-2 px-6 md:px-16"
+      className="relative bg-cover bg-center bg-no-repeat h-[222px]  grid grid-cols-1 md:grid-cols-2 px-6 md:px-16"
       style={{ backgroundImage: `url(${BannerImage})` }}
     >
       {/* Dark Overlay */}

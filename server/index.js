@@ -8,13 +8,13 @@ import { deployFirestoreRules } from "./firebase-admin.js";
 
 // Routes
 import otpRoutes from "./routes/otp.js";
-import tracksRouter from "./routes/tracks.js";
-import coursesRouter from "./routes/courses.js";
-import invoicesRouter from "./routes/invoices.js";
-import learnersRouter from "./routes/learners.js";
-import reportRouter from "./routes/report.js";
-import cartRouter from "./routes/cart.js";
-import paymentRouter from "./routes/payment.js";
+import tracksRoutes from "./routes/tracks.js";
+import coursesRoutes from "./routes/courses.js";
+import invoicesRoutes from "./routes/invoices.js";
+import learnersRoutes from "./routes/learners.js";
+import reportRoutes from "./routes/report.js";
+import cartRoutes from "./routes/cart.js";
+import paymentRoutes from "./routes/payment.js";
 
 // Load environment variables
 dotenv.config();
@@ -137,13 +137,13 @@ app.get("/api/admin/reports", verifyToken, async (req, res) => {
 
 // API Routes
 app.use("/api/auth", otpRoutes);
-app.use("/api/tracks", tracksRouter);
-app.use("/api/courses", coursesRouter);
-app.use("/api/invoices", invoicesRouter);
-app.use("/api/learners", learnersRouter);
-app.use("/api/report", reportRouter);
-app.use("/api/cart", cartRouter);
-app.use("/api/payment", paymentRouter);
+app.use("/api/tracks", tracksRoutes);
+app.use("/api/courses", coursesRoutes);
+app.use("/api/invoices", invoicesRoutes);
+app.use("/api/learners", learnersRoutes);
+app.use("/api/report", reportRoutes);
+app.use("/api/cart", cartRoutes);
+app.use("/api/payment", paymentRoutes);
 
 // Health Check
 app.get("/", (req, res) => {

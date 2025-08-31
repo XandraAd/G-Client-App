@@ -1,5 +1,5 @@
 import React from "react";
-import { FaSignInAlt, FaSyncAlt, FaGraduationCap } from "react-icons/fa";
+import { FaSignInAlt, FaSyncAlt, FaGraduationCap, FaArrowDown } from "react-icons/fa";
 import SecureLogin from "../../assets/icons/secure-login.png";
 import Authentication from "../../assets/icons/authentication.png";
 import CodeIcon from "../../assets/icons/codeIcon.png";
@@ -8,11 +8,11 @@ import CloudIcon from "../../assets/icons/CloudIcon.png";
 
 const OnboardingSteps = () => {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 p-6 md:p-12 lg:p-16 bg-white max-w-7xl mx-auto">
+    <div className="  h-[800px] grid grid-cols-1 lg:grid-cols-2 gap-10 p-6 md:p-12 lg:p-16 max-w-7xl mx-auto">
       {/* Left Column - Steps */}
-      <div className="flex flex-col items-start space-y-8">
+      <div className=" h-[600px] flex flex-col items-start space-y-8">   
         {/* Step 1 */}
-        <div className="bg-white p-6 rounded-xl shadow-lg flex items-start gap-4 w-full">
+        <div className="bg-white p-6 rounded-xl shadow-lg flex items-start gap-4 w-full ">
           <div className="text-blue-600 text-3xl shrink-0">
             <FaSignInAlt />
           </div>
@@ -26,8 +26,7 @@ const OnboardingSteps = () => {
             </p>
           </div>
         </div>
-
-        <div className="text-blue-500 text-2xl self-center md:hidden">↓</div>
+      <div className="text-blue-500 text-2xl self-center "><FaArrowDown/></div>
 
         {/* Step 2 */}
         <div className="bg-white p-6 rounded-xl shadow-lg flex items-start gap-4 w-full">
@@ -43,7 +42,7 @@ const OnboardingSteps = () => {
           </div>
         </div>
 
-        <div className="text-blue-500 text-2xl self-center md:hidden">↓</div>
+        <div className="text-blue-500 text-2xl self-center "><FaArrowDown/></div>
 
         {/* Step 3 */}
         <div className="bg-white p-6 rounded-xl shadow-lg flex items-start gap-4 w-full">
@@ -61,7 +60,7 @@ const OnboardingSteps = () => {
       </div>
 
       {/* Right Column - Process Illustration */}
-      <div className="bg-white rounded-xl shadow-lg p-6 flex flex-col gap-6">
+      <div className="h-[600px] rounded-xl shadow-lg p-6 flex flex-col gap-6">
         {/* Top Two Steps */}
         <div className="grid grid-cols-2 gap-4 text-center">
           <div>
@@ -70,7 +69,7 @@ const OnboardingSteps = () => {
             <img
               src={SecureLogin}
               alt="Secure Login"
-              className="mx-auto mt-2 w-16 h-16 object-contain"
+              className="mx-auto mt-2 w-16 lg:w-32 h-16 lg:h-20  object-contain"
             />
           </div>
           <div>
@@ -79,14 +78,14 @@ const OnboardingSteps = () => {
             <img
               src={Authentication}
               alt="Authentication"
-              className="mx-auto mt-2 w-16 h-16 object-contain"
+              className="mx-auto mt-2 w-16 lg:w-32 h-16 lg:h-20   object-contain"
             />
           </div>
         </div>
 
         {/* Courses Section */}
         <div>
-          <p className="font-semibold mb-4 text-base md:text-lg">3 Choose a course</p>
+          <p className="font-semibold my-8 text-base md:text-lg">3 Choose a course</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {[
               {
@@ -113,7 +112,7 @@ const OnboardingSteps = () => {
                 className="bg-white rounded-lg shadow-md p-4 text-left hover:shadow-lg transition"
               >
                 <img src={course.icon} alt="course icons" className="mb-2 h-8" />
-                <h4 className="font-semibold text-sm md:text-base min-h-[3rem]">
+                <h4 className="font-semibold text-sm md:text-base min-h-[5rem] ">
                   {course.title}
                 </h4>
                 <p className="text-gray-600 text-xs md:text-sm mt-1 line-clamp-3">

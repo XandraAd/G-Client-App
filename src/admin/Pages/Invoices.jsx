@@ -150,24 +150,26 @@ const Invoices = () => {
   };
 
   return (
-    <>
-      <h4 className="mt-10 text-[24px] font-semibold">Manage Invoices</h4>
-      <p className="text-gray-400 text-[18px] font-normal">
+    <div className="container mx-auto px-4 py-6">
+      <h4 className="mt-4 text-xl font-semibold md:mt-6 md:text-2xl">Manage Invoices</h4>
+      <p className="text-gray-400 text-base font-normal md:text-lg">
         Filter, sort, and access detailed invoices
       </p>
 
-      <div className="flex items-center justify-between gap-2 my-4">
-        <CiSearch className="absolute left-[17px] lg:left-[250px] xl:left-[430px] top-[13.5rem] lg:top-[11.5rem] transform -translate-y-1/2 text-gray-400 text-lg" />
-        <input
-          type="text"
-          value={query}
-          onChange={handleSearch}
-          placeholder="Search invoice..."
-          className="border border-gray-300 pl-6 lg:pl-12 py-2 rounded-lg w-1/2 max-w-md"
-        />
+      <div className="flex flex-col gap-4 my-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative w-full sm:w-1/2">
+          <CiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-lg" />
+          <input
+            type="text"
+            value={query}
+            onChange={handleSearch}
+            placeholder="Search invoice..."
+            className="border border-gray-300 pl-10 pr-4 py-2 rounded-lg w-full"
+          />
+        </div>
         <button
           onClick={() => setIsAddInvoiceModalOpen(true)}
-          className="bg-[#01589A] text-white h-10 w-[30%] rounded-xl capitalize text-[16px] font-semibold leading-[20px]"
+          className="bg-[#01589A] text-white py-2 px-4 rounded-xl capitalize text-base font-semibold w-full sm:w-auto"
         >
           + Add Invoice
         </button>
@@ -180,9 +182,9 @@ const Invoices = () => {
           setIsEditModalOpen(false);
           setSelectedInvoice(null);
         }}
-        className="rounded-lg p-6 w-full max-w-md mx-auto mt-20 outline-none relative"
+        className="rounded-lg p-4 w-11/12 max-w-md mx-auto mt-10 outline-none relative sm:p-6"
         contentLabel="Add New Invoice"
-        overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+        overlayClassName="fixed inset-0 backdrop-blur-xs bg-opacity-50 flex items-center justify-center z-50"
       >
         <AddInvoices
           onClose={() => {
@@ -196,8 +198,9 @@ const Invoices = () => {
         />
       </ReactModal>
 
-      <section className="py-6 min-h-full mb-10">
-        <div className="grid grid-cols-6 text-sm font-medium text-gray-600 mb-2 px-4">
+      <section className="py-4 min-h-full mb-6 md:py-6 md:mb-10">
+        {/* Table headers - hidden on mobile, shown on larger screens */}
+        <div className="hidden sm:grid sm:grid-cols-6 text-sm font-medium text-gray-600 mb-2 px-2 md:px-4">
           <p>Learner</p>
           <p className="text-center">Email Address</p>
           <p className="text-center">Date</p>
@@ -211,7 +214,7 @@ const Invoices = () => {
             No matching invoices found.
           </p>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3 md:space-y-4">
             {paginatedInvoices.map((invoice) => {
               const latestName = nameCache[invoice.userId] || invoice.learnerName || "—";
               const amountDisplay =
@@ -226,40 +229,69 @@ const Invoices = () => {
               return (
                 <div
                   key={invoice.id}
-                  className="grid grid-cols-6 items-center px-4 py-3 shadow-sm rounded-lg bg-white hover:shadow-md transition"
+                  className="grid grid-cols-1 gap-3 p-4 shadow-sm rounded-lg bg-white hover:shadow-md transition sm:grid-cols-6 sm:gap-0 sm:items-center sm:px-2 sm:py-3 md:px-4"
                 >
-                  {/* Learner Name (live) */}
-                  <div className="text-gray-800 font-semibold">
+                  {/* Mobile view label-value pairs */}
+                  <div className="sm:hidden grid grid-cols-2 gap-2">
+                    <p className="font-medium text-gray-600">Learner:</p>
+                    <p className="text-gray-800 font-semibold">{latestName}</p>
+                    
+                    <p className="font-medium text-gray-600">Email:</p>
+                    <p className="text-gray-600">{invoice.email || invoice.learnerEmail || "—"}</p>
+                    
+                    <p className="font-medium text-gray-600">Date:</p>
+                    <p className="text-gray-500">{formatDate(invoice.createdAt)}</p>
+                    
+                    <p className="font-medium text-gray-600">Amount:</p>
+                    <p className="text-gray-700">{amountDisplay}</p>
+                    
+                    <p className="font-medium text-gray-600">Status:</p>
+                    <span className={`text-sm font-medium rounded px-2 py-1 inline-block w-fit ${statusClass}`}>
+                      {invoice.status || "pending"}
+                    </span>
+                    
+                    <p className="font-medium text-gray-600">Actions:</p>
+                    <div className="flex gap-2">
+                      <FiEdit2
+                        className="text-green-700 text-[20px] p-1 rounded-full hover:bg-green-100 cursor-pointer"
+                        onClick={() => {
+                          setIsEditModalOpen(true);
+                          setSelectedInvoice(invoice);
+                          handleEdit(invoice);
+                        }}
+                      />
+                      <MdDeleteOutline
+                        className="text-red-600 text-[20px] p-1 rounded-full hover:bg-red-100 cursor-pointer"
+                        onClick={() => handleDelete(invoice.id)}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Desktop view */}
+                  <div className="hidden sm:block text-gray-800 font-semibold truncate">
                     {latestName}
                   </div>
-
-                  {/* Email */}
-                  <div className="text-center text-sm text-gray-600">
+                  <div className="hidden sm:block text-center text-sm text-gray-600 truncate px-1">
                     {invoice.email || invoice.learnerEmail || "—"}
                   </div>
-
-                  {/* Date */}
-                  <div className="text-center text-sm text-gray-500">
+                  <div className="hidden sm:block text-center text-sm text-gray-500">
                     {formatDate(invoice.createdAt)}
                   </div>
-
-                  {/* Amount */}
-                  <div className="text-center text-sm text-gray-700">
+                  <div className="hidden sm:block text-center text-sm text-gray-700">
                     {amountDisplay}
                   </div>
-
-                  {/* Status */}
-                  <div className="flex justify-center">
+                  <div className="hidden sm:flex sm:justify-center">
                     <span className={`text-sm font-medium rounded px-2 py-1 ${statusClass}`}>
                       {invoice.status || "pending"}
                     </span>
                   </div>
-
-                  {/* Actions */}
-                  <div className="flex justify-center gap-2">
+                  <div className="hidden sm:flex sm:justify-center sm:gap-2">
                     <FiEdit2
                       className="text-green-700 text-[20px] p-1 rounded-full hover:bg-green-100 cursor-pointer"
-                      onClick={() => setIsEditModalOpen(true) || setSelectedInvoice(invoice)}
+                      onClick={() => {
+                        setIsEditModalOpen(true);
+                        setSelectedInvoice(invoice);
+                      }}
                     />
                     <MdDeleteOutline
                       className="text-red-600 text-[20px] p-1 rounded-full hover:bg-red-100 cursor-pointer"
@@ -273,7 +305,7 @@ const Invoices = () => {
         )}
 
         {totalPages > 1 && (
-          <div className="flex justify-center items-center gap-2 mt-6">
+          <div className="flex justify-center items-center gap-2 mt-6 flex-wrap">
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
@@ -288,6 +320,17 @@ const Invoices = () => {
 
             {[...Array(totalPages)].map((_, idx) => {
               const page = idx + 1;
+              // Show limited page numbers on mobile
+              if (window.innerWidth < 640 && 
+                  Math.abs(page - currentPage) > 1 && 
+                  page !== 1 && 
+                  page !== totalPages) {
+                if (Math.abs(page - currentPage) === 2) {
+                  return <span key={page} className="px-1">...</span>;
+                }
+                return null;
+              }
+              
               return (
                 <button
                   key={page}
@@ -317,7 +360,7 @@ const Invoices = () => {
           </div>
         )}
       </section>
-    </>
+    </div>
   );
 };
 
