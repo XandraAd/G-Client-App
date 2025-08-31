@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { PiSignIn, PiList, PiX } from "react-icons/pi";
 import { FiShoppingCart } from "react-icons/fi";
 import { useCart } from "../../admin/contexts/CartContext";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, NavLink } from "react-router-dom";
 import { useLearnerAuth } from "../contexts/LearnerAuthContext";
 import { signOut } from "firebase/auth";
 import { auth } from "../../admin/Config/Firebase";
@@ -12,8 +12,8 @@ import { formatUserData } from "../../admin/utils/user";
 const LearnersNavBar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { cartItems } = useCart();
- const { currentLearner } = useLearnerAuth();
-const learner = formatUserData(currentLearner);
+  const { currentLearner } = useLearnerAuth();
+  const learner = formatUserData(currentLearner);
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -37,18 +37,26 @@ const learner = formatUserData(currentLearner);
 
           {/* Desktop Menu */}
           <nav className="hidden md:flex space-x-8">
-            <Link
+            <NavLink
               to="/learner"
-              className="text-gray-700 hover:text-blue-600 transition-colors text-sm font-medium py-2"
+              className={({ isActive }) => 
+                `text-gray-700 hover:text-blue-600 transition-colors text-sm font-medium py-2 ${
+                  isActive ? "text-blue-600 border-b-2 border-blue-600" : ""
+                }`
+              }
             >
               Home
-            </Link>
-            <Link
+            </NavLink>
+            <NavLink
               to="/tracksPage"
-              className="text-gray-700 hover:text-blue-600 transition-colors text-sm font-medium py-2"
+              className={({ isActive }) => 
+                `text-gray-700 hover:text-blue-600 transition-colors text-sm font-medium py-2 ${
+                  isActive ? "text-blue-600 border-b-2 border-blue-600" : ""
+                }`
+              }
             >
               Tracks
-            </Link>
+            </NavLink>
           </nav>
 
           {/* Right Section */}
@@ -110,12 +118,16 @@ const learner = formatUserData(currentLearner);
                       <Link
                         to="/portal"
                         className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                        onClick={() => setDropdownOpen(false)}
                       >
                         Portal
                       </Link>
                      <hr />
                       <button
-                        onClick={handleLogout}
+                        onClick={() => {
+                          handleLogout();
+                          setDropdownOpen(false);
+                        }}
                         className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
                       >
                         Logout
@@ -138,66 +150,76 @@ const learner = formatUserData(currentLearner);
       </div>
 
       {/* Mobile Dropdown */}
-{mobileMenuOpen && (
-  <div className="md:hidden bg-white shadow-lg border-t p-4 space-y-3 animate-slideDown">
-    <Link
-      to="/learner"
-      onClick={() => setMobileMenuOpen(false)}
-      className="block text-gray-700 hover:text-blue-600 font-medium"
-    >
-      Home
-    </Link>
-    <Link
-      to="/tracksPage"
-      onClick={() => setMobileMenuOpen(false)}
-      className="block text-gray-700 hover:text-blue-600 font-medium"
-    >
-      Tracks
-    </Link>
+      {mobileMenuOpen && (
+        <div className="md:hidden bg-white shadow-lg border-t p-4 space-y-3 animate-slideDown">
+          <NavLink
+            to="/learner"
+            onClick={() => setMobileMenuOpen(false)}
+            className={({ isActive }) => 
+              `block font-medium ${
+                isActive 
+                  ? "text-blue-600 border-l-4 border-blue-600 pl-3" 
+                  : "text-gray-700 hover:text-blue-600"
+              }`
+            }
+          >
+            Home
+          </NavLink>
+          <NavLink
+            to="/tracksPage"
+            onClick={() => setMobileMenuOpen(false)}
+            className={({ isActive }) => 
+              `block font-medium ${
+                isActive 
+                  ? "text-blue-600 border-l-4 border-blue-600 pl-3" 
+                  : "text-gray-700 hover:text-blue-600"
+              }`
+            }
+          >
+            Tracks
+          </NavLink>
 
-    <hr className="my-2" />
+          <hr className="my-2" />
 
-    {currentLearner ? (
-      <>
-        <Link
-          to="/portal"
-          onClick={() => setMobileMenuOpen(false)}
-          className="block text-gray-700 hover:text-blue-600 font-medium"
-        >
-          Portal
-        </Link>
-        <button
-          onClick={() => {
-            handleLogout();
-            setMobileMenuOpen(false);
-          }}
-          className="block w-full text-left text-gray-700 hover:text-red-600 font-medium"
-        >
-          Logout
-        </button>
-      </>
-    ) : (
-      <>
-        <Link
-          to="/learner/signin"
-          onClick={() => setMobileMenuOpen(false)}
-          className="block bg-blue-600 text-white px-4 py-2 rounded-md text-center hover:bg-blue-700 transition-colors"
-        >
-          Login
-        </Link>
-        <Link
-          to="/learner/signup"
-          onClick={() => setMobileMenuOpen(false)}
-          className="block border border-blue-600 text-blue-600 px-4 py-2 rounded-md text-center hover:bg-blue-50 transition-colors"
-        >
-          Sign Up
-        </Link>
-      </>
-    )}
-  </div>
-)}
-
-
+          {currentLearner ? (
+            <>
+              <Link
+                to="/portal"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block text-gray-700 hover:text-blue-600 font-medium"
+              >
+                Portal
+              </Link>
+              <button
+                onClick={() => {
+                  handleLogout();
+                  setMobileMenuOpen(false);
+                }}
+                className="block w-full text-left text-gray-700 hover:text-red-600 font-medium"
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/learner/signin"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block bg-blue-600 text-white px-4 py-2 rounded-md text-center hover:bg-blue-700 transition-colors"
+              >
+                Login
+              </Link>
+              <Link
+                to="/learner/signup"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block border border-blue-600 text-blue-600 px-4 py-2 rounded-md text-center hover:bg-blue-50 transition-colors"
+              >
+                Sign Up
+              </Link>
+            </>
+          )}
+        </div>
+      )}
     </header>
   );
 };

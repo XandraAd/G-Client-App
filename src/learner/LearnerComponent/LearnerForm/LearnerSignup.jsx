@@ -68,6 +68,7 @@ const LearnerSignUp = ({ switchForm }) => {
         lastName,
         email,
         role: "learner", 
+        emailVerified:"false",
         createdAt: new Date(),
       });
 

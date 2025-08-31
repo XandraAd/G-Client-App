@@ -10,7 +10,7 @@ const LearnerDashboard = () => {
    
     <div className="min-h-screen bg-gray-50">
       {/* Top Header with Tabs */}
-      <div className="bg-blue-700 h-[120px] flex items-end">
+      <div className="bg-blue-700 h-[175px] flex items-end">
         <nav className="w-full max-w-6xl mx-auto flex flex-wrap gap-4 px-4 md:px-6">
           <NavLink
             to="dashboard"  

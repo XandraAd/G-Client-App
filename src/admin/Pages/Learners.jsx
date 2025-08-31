@@ -11,8 +11,6 @@ const Learners = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-
-  // New state for modal
   const [selectedLearner, setSelectedLearner] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
@@ -80,16 +78,22 @@ const Learners = () => {
   const paginated = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
     return filtered.slice(start, start + itemsPerPage);
-  }, [filtered, currentPage]);
+  }, [filtered, currentPage, itemsPerPage]);
 
   useEffect(() => {
     if (currentPage > totalPages) setCurrentPage(1);
   }, [totalPages, currentPage]);
 
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    // Scroll to top of the list for better mobile experience
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
-    <>
-      <h4 className="mt-10 text-[24px] font-semibold">Manage Learners</h4>
-      <p className="text-gray-400 text-[18px] font-normal">
+    <div className="container mx-auto px-4 py-6">
+      <h4 className="mt-4 text-xl font-semibold md:mt-6 md:text-2xl">Manage Learners</h4>
+      <p className="text-gray-400 text-base font-normal md:text-lg">
         Filter, sort, and access detailed learner profiles
       </p>
 
@@ -101,7 +105,7 @@ const Learners = () => {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search learner by name or email..."
-          className="border border-gray-300 pl-10 py-2 rounded-lg w-full"
+          className="border border-gray-300 pl-10 pr-4 py-2 rounded-lg w-full"
         />
       </div>
 
@@ -111,8 +115,9 @@ const Learners = () => {
       )}
 
       {!loading && !error && (
-        <section className="py-6 min-h-full mb-10">
-          <div className="grid grid-cols-6 text-sm font-medium text-gray-600 mb-2 px-4">
+        <section className="py-4 min-h-full mb-6 md:py-6 md:mb-10">
+          {/* Table headers - hidden on mobile, shown on larger screens */}
+          <div className="hidden sm:grid sm:grid-cols-6 text-sm font-medium text-gray-600 mb-2 px-2 md:px-4">
             <p>Learners</p>
             <p className="text-center">Courses</p>
             <p className="text-center">Date Joined</p>
@@ -128,37 +133,77 @@ const Learners = () => {
                 : "No learners match your search."}
             </p>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
               {paginated.map((l) => (
                 <div
-                  key={l.id}
-                  className="grid grid-cols-6 items-center px-4 py-3 shadow-sm rounded-lg bg-white hover:shadow-md transition"
+                  key={l.id || l._id || `${l.email}-${l.learnerName}`}
+                  className="grid grid-cols-1 gap-3 p-4 shadow-sm rounded-lg bg-white hover:shadow-md transition sm:grid-cols-6 sm:gap-0 sm:items-center sm:px-2 sm:py-3 md:px-4"
                 >
-                  <div className="text-gray-800 font-semibold truncate">
-                    {l.learnerName}
+                  {/* Mobile view label-value pairs */}
+                  <div className="sm:hidden grid grid-cols-2 gap-2">
+                    <p className="font-medium text-gray-600">Learner:</p>
+                    <p className="text-gray-800 font-semibold truncate">{l.learnerName || l.name || l.fullName || "—"}</p>
+                    
+                    <p className="font-medium text-gray-600">Courses:</p>
+                    <p className="text-gray-600">
+                      {l.tracks && l.tracks.length > 0
+                        ? l.tracks[0].name
+                        : l.courses && l.courses.length > 0
+                        ? l.courses[0].name || l.courses[0]
+                        : "No courses"}
+                    </p>
+                    
+                    <p className="font-medium text-gray-600">Date Joined:</p>
+                    <p className="text-gray-500">
+                      {l.dateJoined || l.createdAt
+                        ? new Date(l.dateJoined || l.createdAt).toLocaleDateString()
+                        : "—"}
+                    </p>
+                    
+                    <p className="font-medium text-gray-600">Amount:</p>
+                    <p className="text-gray-700">{formatCurrency(l.amount, l.currency)}</p>
+                    
+                    <p className="font-medium text-gray-600">Gender:</p>
+                    <p className="text-gray-600">{l.gender || "—"}</p>
+                    
+                    <p className="font-medium text-gray-600">Actions:</p>
+                    <div className="flex">
+                      <button
+                        className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                        title="View details"
+                        onClick={() => {
+                          setSelectedLearner(l);
+                          setShowModal(true);
+                        }}
+                      >
+                        <MdOutlineRemoveRedEye className="text-gray-600 hover:text-blue-600" />
+                      </button>
+                    </div>
                   </div>
 
-                  <div className="text-center text-sm text-gray-600">
+                  {/* Desktop view */}
+                  <div className="hidden sm:block text-gray-800 font-semibold truncate">
+                    {l.learnerName || l.name || l.fullName || "—"}
+                  </div>
+                  <div className="hidden sm:block text-center text-sm text-gray-600 truncate px-1">
                     {l.tracks && l.tracks.length > 0
                       ? l.tracks[0].name
-                      : "No tracks"}
+                      : l.courses && l.courses.length > 0
+                      ? l.courses[0].name || l.courses[0]
+                      : "No courses"}
                   </div>
-
-                  <div className="text-center text-sm text-gray-500">
-                    {l.dateJoined
-                      ? new Date(l.dateJoined).toLocaleDateString()
+                  <div className="hidden sm:block text-center text-sm text-gray-500">
+                    {l.dateJoined || l.createdAt
+                      ? new Date(l.dateJoined || l.createdAt).toLocaleDateString()
                       : "—"}
                   </div>
-
-                  <div className="text-center text-sm text-gray-700">
+                  <div className="hidden sm:block text-center text-sm text-gray-700">
                     {formatCurrency(l.amount, l.currency)}
                   </div>
-
-                  <div className="text-center text-sm text-gray-600">
+                  <div className="hidden sm:block text-center text-sm text-gray-600">
                     {l.gender || "—"}
                   </div>
-
-                  <div className="text-center text-sm flex justify-center">
+                  <div className="hidden sm:flex sm:justify-center">
                     <button
                       className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
                       title="View details"
@@ -174,38 +219,96 @@ const Learners = () => {
               ))}
             </div>
           )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-2 mt-6 flex-wrap">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className={`flex items-center gap-1 px-3 py-1 rounded-md border ${
+                  currentPage === 1
+                    ? "text-gray-400 border-gray-300 cursor-not-allowed"
+                    : "text-blue-600 border-blue-500 hover:bg-blue-50"
+                }`}
+              >
+                ← Prev
+              </button>
+
+              {[...Array(totalPages)].map((_, idx) => {
+                const page = idx + 1;
+                // Show limited page numbers on mobile
+                if (typeof window !== 'undefined' && window.innerWidth < 640 && 
+                    Math.abs(page - currentPage) > 1 && 
+                    page !== 1 && 
+                    page !== totalPages) {
+                  if (Math.abs(page - currentPage) === 2) {
+                    return <span key={page} className="px-1">...</span>;
+                  }
+                  return null;
+                }
+                
+                return (
+                  <button
+                    key={page}
+                    onClick={() => handlePageChange(page)}
+                    className={`px-3 py-1 rounded-md text-sm font-medium border ${
+                      currentPage === page
+                        ? "bg-blue-600 text-white border-blue-600"
+                        : "text-gray-600 border-gray-300 hover:bg-gray-100"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
+
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className={`flex items-center gap-1 px-3 py-1 rounded-md border ${
+                  currentPage === totalPages
+                    ? "text-gray-400 border-gray-300 cursor-not-allowed"
+                    : "text-blue-600 border-blue-500 hover:bg-blue-50"
+                }`}
+              >
+                Next →
+              </button>
+            </div>
+          )}
         </section>
       )}
 
       {/* Modal */}
       {showModal && selectedLearner && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-          <div className="bg-white rounded-2xl shadow-lg w-full max-w-lg p-6 relative">
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-lg w-full max-w-lg max-h-[90vh] overflow-y-auto relative">
             <button
               onClick={() => setShowModal(false)}
-              className="absolute top-3 right-3 text-gray-500 hover:text-gray-800"
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 z-10"
             >
               ✖
             </button>
 
             {/* Profile image */}
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-center pt-6 pb-4 px-6">
               <img
                 src={selectedLearner.avatar || "/default-avatar.png"}
-                alt={selectedLearner.learnerName}
+                alt={selectedLearner.learnerName || selectedLearner.name || "Learner"}
                 className="w-24 h-24 rounded-full object-cover mb-4"
               />
-              <h2 className="text-xl font-semibold text-gray-800">
-                {selectedLearner.learnerName}
+              <h2 className="text-xl font-semibold text-gray-800 text-center">
+                {selectedLearner.learnerName || selectedLearner.name || selectedLearner.fullName || "—"}
               </h2>
-              <p className="text-gray-500 text-sm">{selectedLearner.email}</p>
+              <p className="text-gray-500 text-sm text-center">{selectedLearner.email || "—"}</p>
             </div>
 
             {/* Details */}
-            <div className="mt-6 space-y-3 text-gray-700">
+            <div className="px-6 pb-6 space-y-3 text-gray-700">
               <p>
                 <span className="font-medium">Program:</span>{" "}
                 {selectedLearner.tracks?.map((t) => t.name).join(", ") ||
+                  selectedLearner.courses?.join(", ") ||
                   "—"}
               </p>
               <p>
@@ -232,7 +335,7 @@ const Learners = () => {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 };
 

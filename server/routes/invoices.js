@@ -91,6 +91,19 @@ router.post("/", async (req, res) => {
 
     const learnerEmail = learner ? learner.email : email;
 
+        // ✅ Ensure items are stored properly
+    const invoiceItems = (items && items.length > 0)
+      ? items.map(it => ({
+          trackId: it.trackId || it.id || null,
+          title: it.title || "Unknown Track",
+          price: it.price ? parseFloat(it.price) : parseFloat(amount),
+        }))
+      : [{
+          trackId: null,
+          title: "General Purchase",
+          price: parseFloat(amount),
+        }];
+
     const invoiceData = {
       userId: userId || learner?.uid || null,
       learnerName,
@@ -98,7 +111,7 @@ router.post("/", async (req, res) => {
       amount: parseFloat(amount),
       currency: currency || "GHS",
       reference: reference || `inv-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      items: items || [],
+      items: invoiceItems,
       status: "pending",
       dueDate: dueDate.toISOString(),
       createdAt: createdAt.toISOString(),
@@ -113,6 +126,7 @@ router.post("/", async (req, res) => {
     await docRef.set(invoiceData);
 
     console.log("✅ Invoice saved with learner:", learnerName, learnerEmail);
+     console.log("✅ Invoice saved with items:", invoiceItems);
 
     res.status(201).json({ id: docRef.id, ...invoiceData });
   } catch (err) {

@@ -1,6 +1,6 @@
 //express routes
 import express from "express";
-//import { Track } from "../models/Tracks.js";
+
 import { db } from "../firebase-admin.js";
 import { cloudinary } from "../utils/cloudinary.js";
 
@@ -24,7 +24,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-// GET a single track by ID
+
 // GET single track by ID
 router.get("/:id", async (req, res) => {
   const { id } = req.params;

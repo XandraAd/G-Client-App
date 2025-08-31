@@ -130,7 +130,7 @@ const admin=formatUserData(currentUser,true);
   return (
     <>
       {/* Desktop Sidebar */}
-      <div className="hidden lg:flex flex-col bg-blue-500 min-h-full p-2 w-[22%] lg:w-[200px] xl:w-[400px] lg:rounded-b-lg fixed">
+      <div className="hidden lg:flex flex-col bg-blue-500 min-h-full  p-2  lg:w-[200px] xl:w-[400px] lg:rounded-b-lg fixed">
         <div className="min-w-full mb-2 p-6 bg-white flex justify-center items-center shadow-md">
           <img src={Logo} className="w-32 h-auto object-contain" alt="Company Logo" />
         </div>

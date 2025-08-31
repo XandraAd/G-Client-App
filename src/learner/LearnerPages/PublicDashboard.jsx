@@ -7,6 +7,7 @@ import LearnerTracks from "../LearnerComponent/LearnerTracks";
 import LearnerDiscovery from "../LearnerComponent/LearnerDiscovery";
 import LearnerBanner from "../LearnerComponent/LearnerBanner";
 import OnboardingSteps from "../LearnerComponent/OnBoardingSteps";
+import StatsFromAdmin from "../LearnerComponent/StatsFromAdmin";
 
 const PublicLearnerDashboard = () => {
   return (
@@ -21,6 +22,9 @@ const PublicLearnerDashboard = () => {
 
       {/*Discovery Section*/}
       <LearnerDiscovery />
+
+      {/* Stats Section */}
+      <StatsFromAdmin/>
       
       {/*Banner Section*/}
       <LearnerBanner/>

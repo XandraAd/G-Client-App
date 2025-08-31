@@ -21,26 +21,7 @@ router.get("/", async (req, res) => {
       createdAt: parseDate(doc.data().createdAt)
     }));
 
-    // Count learners (non-admin users)
-    const totalLearners = users.filter(u => !u.isAdmin).length;
-
-    // 2️⃣ Monthly learners chart
-    const months = [
-      "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"
-    ];
-
-    const currentYear = new Date().getFullYear();
-    const chartData = months.map((month, idx) => {
-      const learnersThisMonth = users.filter(u => {
-        if (u.isAdmin) return false;
-        const date = u.createdAt;
-        return date && date.getFullYear() === currentYear && date.getMonth() === idx;
-      }).length;
-
-      return { month, learners: learnersThisMonth };
-    });
-
-    // 3️⃣ Fetch invoices
+    // 2️⃣ Fetch invoices (only successful/paid ones)
     const invoicesSnap = await db.collection("invoices").get();
     const invoices = invoicesSnap.docs.map(doc => {
       const data = doc.data();
@@ -52,9 +33,40 @@ router.get("/", async (req, res) => {
       };
     });
 
+    // 3️⃣ Collect learner IDs who have made payment
+    const payingLearners = new Set(
+      invoices
+        .filter(inv => inv.status === "paid" || inv.status === "completed")
+        .map(inv => inv.userId || inv.learnerId)
+    );
+
+    // 4️⃣ Count only learners with a payment
+    const totalLearners = users.filter(
+      u => !u.isAdmin && payingLearners.has(u.id)
+    ).length;
+
+    // 5️⃣ Monthly learners chart
+    const months = [
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun", 
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ];
+
+    const currentYear = new Date().getFullYear();
+    const chartData = months.map((month, idx) => {
+      const learnersThisMonth = users.filter(u => {
+        if (u.isAdmin) return false;
+        if (!payingLearners.has(u.id)) return false;
+        const date = u.createdAt;
+        return date && date.getFullYear() === currentYear && date.getMonth() === idx;
+      }).length;
+
+      return { month, learners: learnersThisMonth };
+    });
+
+    // 6️⃣ Calculate total revenue
     const totalRevenue = invoices.reduce((sum, i) => sum + (i.amount || 0), 0);
 
-    // Monthly revenue chart
+    // 7️⃣ Add revenue to monthly chart data
     chartData.forEach(cd => {
       const monthIdx = months.indexOf(cd.month);
       const revenueThisMonth = invoices
@@ -63,19 +75,17 @@ router.get("/", async (req, res) => {
       cd.revenue = revenueThisMonth;
     });
 
-    // 4️⃣ Fetch enrollments to count course enrollments
- 
-const enrollmentsSnap = await db.collection("invoices").where("status", "==", "completed").get();
-const enrollments = enrollmentsSnap.docs.map(doc => {
-  const data = doc.data();
-  return {
-    id: doc.id,
-    ...data,
-    createdAt: parseDate(data.createdAt),
-  };
-});
+    // 8️⃣ Fetch enrollments to count course enrollments
+    const enrollmentsSnap = await db.collection("invoices").where("status", "==", "completed").get();
+    const enrollments = enrollmentsSnap.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        createdAt: parseDate(data.createdAt),
+      };
+    });
 
-    
     // Count enrollments per course
     const courseEnrollmentCount = {};
     enrollments.forEach(enrollment => {
@@ -84,7 +94,7 @@ const enrollments = enrollmentsSnap.docs.map(doc => {
       }
     });
 
-    // 5️⃣ Top courses
+    // 9️⃣ Top courses
     const coursesSnap = await db.collection("courses").get();
     const courses = coursesSnap.docs.map(doc => ({
       id: doc.id,
@@ -100,16 +110,17 @@ const enrollments = enrollmentsSnap.docs.map(doc => {
       .sort((a, b) => b.enrollments - a.enrollments)
       .slice(0, 5);
 
-    // 6️⃣ Recent activities - combine enrollments and invoices
+    // 🔟 Recent activities - combine enrollments and invoices
     const recentEnrollments = enrollments
-      .filter(e => e.createdAtAt)
+      .filter(e => e.createdAt)
       .map(e => ({
         id: e.id,
         type: "enrollment",
-        user: e.userId || e.learnerId || e.learnerName,
+        user: e.learnerName || e.userId || e.learnerId,
+        track: e.trackTitle || e.courseTitle || e.courseId,
         course: e.courseId,
-        date: parseDate(e.enrolledAt),
-        action: "Enrolled in course"
+        date: parseDate(e.createdAt),
+        action: `Enrolled in ${e.trackTitle || e.courseTitle || "a course"}`
       }));
     
     const recentInvoices = invoices
@@ -117,18 +128,19 @@ const enrollments = enrollmentsSnap.docs.map(doc => {
       .map(inv => ({
         id: inv.id,
         type: "invoice",
-        user: inv.userId || inv.learnerId,
+        user: inv.learnerName || inv.userId || inv.learnerId,
+        track: inv.items?.[0]?.title || "Unknown Track",
         amount: inv.amount,
-        date: inv.createdAt,
-        action: "Purchased course"
+        date: parseDate(inv.createdAt),
+        action: `Purchased ${inv.items?.[0]?.title || "a track"}`
       }));
-    
+
     // Combine and sort activities
     const allActivities = [...recentEnrollments, ...recentInvoices]
       .sort((a, b) => b.date - a.date)
       .slice(0, 10);
 
-    // 7️⃣ Average rating - get from course reviews if available
+    // 1️⃣1️⃣ Average rating - get from course reviews if available
     let totalRating = 0;
     let ratingCount = 0;
     
@@ -157,7 +169,7 @@ const enrollments = enrollmentsSnap.docs.map(doc => {
     
     const averageRating = ratingCount > 0 ? totalRating / ratingCount : 0;
 
-    // 8️⃣ Calculate completions for chart
+    // 1️⃣2️⃣ Calculate completions for chart
     try {
       const completionsSnap = await db.collection("completions").get();
       const completions = completionsSnap.docs.map(doc => ({
@@ -181,22 +193,26 @@ const enrollments = enrollmentsSnap.docs.map(doc => {
       });
     }
 
+    // 1️⃣3️⃣ Calculate new enrollments (last 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const newEnrollments = enrollments.filter(e => {
+      return e.createdAt && e.createdAt > thirtyDaysAgo;
+    }).length;
+
     res.status(200).json({
       totalLearners,
       chartData,
-      invoices,
       totalRevenue,
       topCourses,
       recentActivities: allActivities,
       totalCourses: courses.length,
       totalInvoices: invoices.length,
       averageRating: Number(averageRating.toFixed(1)),
-      newEnrollments: enrollments.filter(e => {
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        return e.enrolledAt && parseDate(e.enrolledAt) > thirtyDaysAgo;
-      }).length
+      newEnrollments
     });
+
   } catch (error) {
     console.error("Error fetching report:", error);
     res.status(500).json({ error: error.message });
