@@ -11,23 +11,26 @@ const TracksPage = () => {
   const [loading, setLoading] = useState(true);
   const [ratings, setRatings] = useState({}); // Store ratings by track ID
 
-  // Fetch tracks
-  const fetchTracks = async () => {
-    try {
-      setLoading(true);
-      const res = await axios.get("/api/tracks");
-      console.log("📥 Tracks fetched:", res.data);
-      setTracks(res.data);
-      setFilteredTracks(res.data);
-      
-      // Fetch ratings for each track
-      fetchRatingsForTracks(res.data);
-    } catch (error) {
-      console.error("Failed to fetch tracks:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+
+
+// Fetch tracks from your API endpoint
+const fetchTracks = async () => {
+  try {
+    setLoading(true);
+
+    const res = await axios.get("/api/tracks");
+
+    console.log("📥 Tracks fetched:", res.data);
+    setTracks(res.data);
+    setFilteredTracks(res.data);
+    fetchRatingsForTracks(res.data);
+  } catch (error) {
+    console.error("Failed to load tracks:", error);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   // Fetch ratings for all tracks
   const fetchRatingsForTracks = async (tracksData) => {
@@ -37,7 +40,7 @@ const TracksPage = () => {
       // Fetch ratings for each track
       for (const track of tracksData) {
         try {
-          const res = await axios.get(`http://localhost:5000/api/tracks/${track.id}/reviews`);
+          const res = await axios.get(`/api/tracks/${track.id}/reviews`);
           const reviews = res.data;
           
           if (reviews.length > 0) {

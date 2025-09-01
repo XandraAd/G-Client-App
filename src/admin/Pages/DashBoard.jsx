@@ -77,9 +77,9 @@ const DashBoard = () => {
     const fetchDashboardData = async () => {
       try {
         const [learnersRes, invoicesRes, tracksRes] = await Promise.all([
-          axios.get("http://localhost:5000/api/learners"),
-          axios.get("http://localhost:5000/api/invoices"),
-          axios.get("http://localhost:5000/api/tracks"),
+          axios.get("/api/learners"),
+          axios.get("/api/invoices"),
+          axios.get("/api/tracks"),
         ]);
 
         setLearners(learnersRes.data);

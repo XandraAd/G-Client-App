@@ -35,7 +35,7 @@ const SignIn = ({ switchForm, onForgotPassword }) => {
       const idToken = await user.getIdToken();
 
       // 3. Call backend to check role
-      const response = await fetch("http://localhost:5000/api/admin/check-role", {
+      const response = await fetch("/api/admin/check-role", {
         method: "GET",
         headers: {
           Authorization: `Bearer ${idToken}`,
