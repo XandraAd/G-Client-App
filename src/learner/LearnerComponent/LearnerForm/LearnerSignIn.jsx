@@ -66,17 +66,41 @@ const LearnerSignIn = ({ switchForm }) => {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    setError("");
-    const provider = new GoogleAuthProvider();
-    try {
-      const { user } = await signInWithPopup(auth, provider);
-      await checkRoleAndRedirect(user);
-    } catch (error) {
-      console.error("Google Sign In Error:", error.message);
-      setError(error.message);
+ const handleGoogleSignup = async () => {
+  try {
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+
+    // Extract profile info from Google
+    const displayName = user.displayName || "";
+    const [firstName = "", lastName = ""] = displayName.split(" ");
+
+    // Check if user already exists in Firestore
+    const userRef = doc(db, "users", user.uid);
+    const userSnap = await getDoc(userRef);
+
+    if (!userSnap.exists()) {
+      // Create new learner in Firestore
+      await setDoc(userRef, {
+        uid: user.uid,
+        firstName,
+        lastName,
+        email: user.email,
+        role: "learner",
+        emailVerified: user.emailVerified, // google already verifies emails
+        createdAt: new Date(),
+      });
     }
-  };
+
+    // Navigate to dashboard (or where you want)
+    const redirectPath = location.state?.from || "/learner/dashboard";
+    navigate(redirectPath, { replace: true });
+
+  } catch (error) {
+    console.error("Google Signup Error:", error.message);
+    setError(error.message);
+  }
+};
 
   const handleForgotPassword = () => {
     navigate("/learner/reset", { replace: true });
