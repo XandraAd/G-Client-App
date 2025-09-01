@@ -15,7 +15,7 @@ const TracksPage = () => {
   const fetchTracks = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("http://localhost:5000/api/tracks");
+      const res = await axios.get("/api/tracks");
       console.log("📥 Tracks fetched:", res.data);
       setTracks(res.data);
       setFilteredTracks(res.data);

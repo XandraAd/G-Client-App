@@ -1,24 +1,13 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios"
 import { Link } from "react-router-dom";
-import CalendarIcon from "../../assets/icons/calendarIcon.png";
+import CalendarIcon from "../../../public/assets/icons/calendarIcon.png";
 import { CiSearch } from "react-icons/ci";
 import { IoPersonOutline } from "react-icons/io5";
 import AddTracks from "../Components/forms/AddTrack"
 import ReactModal from 'react-modal';
 
-// Image imports for mapping string names to real images
-import bgUi from "../../assets/icons/bgUi.png";
-import bgSoftware from "../../assets/icons/bgSoftware.png";
-import bgCloud from "../../assets/icons/bgCloud.png";
-import bgData from "../../assets/icons/bgData.png";
 
-const imageMap = {
-  bgUi,
-  bgSoftware,
-  bgCloud,
-  bgData,
-};
 
 // More vibrant and distinct colors
 const PROGRAM_COLORS = [
@@ -131,8 +120,8 @@ const Tracks = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
             {filteredTracks.map((track) => {
-              const bgImgKey = track.bgImg?.replace(".png", "");
-              const bgImg = imageMap[bgImgKey] || track.bgImg;
+              //const bgImgKey = track.bgImg?.replace(".png", "");
+              const bgImg =  track.bgImg;
               
               return (
                 <Link key={track.id} to={`${track.id}`}>

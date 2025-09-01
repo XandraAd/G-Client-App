@@ -6,7 +6,7 @@ import { Link, useNavigate, NavLink } from "react-router-dom";
 import { useLearnerAuth } from "../contexts/LearnerAuthContext";
 import { signOut } from "firebase/auth";
 import { auth } from "../../admin/Config/Firebase";
-import Logo  from "../../assets/icons/logo.png"; 
+import Logo  from "../../../public/assets/icons/logo.png"; 
 import { formatUserData } from "../../admin/utils/user";
 
 const LearnersNavBar = () => {

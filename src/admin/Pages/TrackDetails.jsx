@@ -4,7 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import ReactModal from "react-modal";
 import EditTrack from "../Components/forms/EditTracks";
-import CalendarIcon from "../../assets/icons/calendarIcon.png";
+import CalendarIcon from "../../../public/assets/icons/calendarIcon.png";
 import { FiEdit2 } from "react-icons/fi";
 import { MdDeleteOutline } from "react-icons/md";
 import { ImWarning } from "react-icons/im";

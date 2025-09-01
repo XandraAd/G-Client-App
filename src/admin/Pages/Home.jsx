@@ -1,7 +1,7 @@
 import React,{useState,useEffect} from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import LoginBackground from "../../assets/icons/loginBackground.png";
-import OverlayImage from "../../assets/icons/Rectangle 69.png";
+import LoginBackground from "../../../public/assets/icons/loginBackground.png";
+import OverlayImage from "../../../public/assets/icons/Rectangle 69.png";
 import SignIn from "../Components/forms/SignIn";
 import SignUp from "../Components/forms/SignUp";
 import OTPVerification from "../Components/forms/OTpVerification"

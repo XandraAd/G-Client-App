@@ -5,15 +5,42 @@ import { HiOutlineUserGroup, HiCurrencyDollar } from "react-icons/hi2";
 import { LiaFileInvoiceSolid } from "react-icons/lia";
 import { FaCediSign } from "react-icons/fa6";
 import { MdArrowUpward } from "react-icons/md";
-import CalendarIcon from "../../assets/icons/calendarIcon.png";
+import CalendarIcon from "../../../public/assets/icons/calendarIcon.png";
 import BarChart from "../Components/BarChart";
 import LatestInvoice from "../Components/LatestInvoice";
+
+
+// More vibrant and distinct colors
+const PROGRAM_COLORS = [
+  "#FF6B6B", "#4ECDC4", "#45B7D1", "#F9A826", "#6C5CE7", 
+  "#00B894", "#FD79A8", "#FDCB6E", "#00CEC9", "#546DE5",
+  "#E17055", "#0984E3", "#D63031", "#00B894", "#E84393",
+  "#FDCB6E", "#636E72", "#74B9FF", "#A29BFE", "#DFE6E9",
+  "#FF9FF3", "#FEA47F", "#F97F51", "#B33771", "#3B3B98",
+  "#58B19F", "#BDC581", "#2C3A47", "#82589F", "#D6A2E8"
+];
 
 const DashBoard = () => {
   const navigate = useNavigate();  
   const [learners, setLearners] = useState([]);
   const [invoices, setInvoices] = useState([]);
   const [tracks, setTracks] = useState([]);
+
+  // Improved function to get a consistent color for a program tag
+  const getProgramColor = (label) => {
+    if (!label) return PROGRAM_COLORS[0];
+    
+    // Create a hash from the entire string for more variety
+    let hash = 0;
+    for (let i = 0; i < label.length; i++) {
+      hash = label.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    
+    // Use absolute value and modulo to get index
+    const index = Math.abs(hash) % PROGRAM_COLORS.length;
+    return PROGRAM_COLORS[index];
+  };
+
   
   // Card data array
   const statsCards = [
@@ -159,32 +186,42 @@ const DashBoard = () => {
           <p className="ml-2 truncate">{track.duration}</p>
         </div>
 
-        {/* Tags */}
-        <div className="mt-2 flex flex-wrap">
-          {Array.isArray(track.program) &&
-            track.program.slice(0, 3).map((tech, index) => {
-              const label = typeof tech === "string" ? tech : tech.label;
-              const bgColor = tech.bgColor || "#E0F2FE";
-              const textColor = tech.textColor || "#1E3A8A";
-              return (
-                <span
-                  key={index}
-                  className="text-xs px-2 py-1 rounded-full mr-1 mb-1"
-                  style={{
-                    backgroundColor: bgColor,
-                    color: textColor,
-                  }}
-                >
-                  {label}
-                </span>
-              );
-            })}
-          {track.program && track.program.length > 3 && (
-            <span className="text-xs text-gray-500 px-1">
-              +{track.program.length - 3} more
-            </span>
-          )}
-        </div>
+        {/* Program Tags - Fixed Color Logic */}
+                      <div className="mt-3 flex flex-wrap gap-1">
+                        {Array.isArray(track.program) && track.program.length > 0 ? (
+                          <>
+                            {track.program.slice(0, 3).map((tech, index) => {
+                              const label = typeof tech === "string" ? tech : tech.label;
+                              const bgColor = typeof tech === "object" && tech.bgColor 
+                                ? tech.bgColor 
+                                : getProgramColor(label);
+                              const textColor = typeof tech === "object" && tech.textColor 
+                                ? tech.textColor 
+                                : getTextColorForBackground(bgColor);
+                              
+                              return (
+                                <span
+                                  key={index}
+                                  style={{
+                                    backgroundColor: bgColor,
+                                    color: textColor,
+                                  }}
+                                  className="text-xs px-2 py-1 rounded-full font-medium"
+                                >
+                                  {label}
+                                </span>
+                              );
+                            })}
+                            {track.program.length > 3 && (
+                              <span className="text-xs text-gray-500">
+                                +{track.program.length - 3} more
+                              </span>
+                            )}
+                          </>
+                        ) : (
+                          <span className="text-xs text-gray-500">No program tags</span>
+                        )}
+                      </div>
       </div>
     </div>
   ))}
@@ -199,5 +236,43 @@ const DashBoard = () => {
     </>
   );
 };
+
+// Helper function to determine text color based on background color
+function getTextColorForBackground(backgroundColor) {
+  if (!backgroundColor) return '#000000';
+  
+  // Handle both hex and rgb colors
+  let r, g, b;
+  
+  if (backgroundColor.startsWith('#')) {
+    const hex = backgroundColor.replace('#', '');
+    if (hex.length === 3) {
+      r = parseInt(hex[0] + hex[0], 16);
+      g = parseInt(hex[1] + hex[1], 16);
+      b = parseInt(hex[2] + hex[2], 16);
+    } else if (hex.length === 6) {
+      r = parseInt(hex.substr(0, 2), 16);
+      g = parseInt(hex.substr(2, 2), 16);
+      b = parseInt(hex.substr(4, 2), 16);
+    } else {
+      return '#000000';
+    }
+  } else if (backgroundColor.startsWith('rgb')) {
+    const rgb = backgroundColor.match(/\d+/g);
+    if (rgb && rgb.length >= 3) {
+      r = parseInt(rgb[0]);
+      g = parseInt(rgb[1]);
+      b = parseInt(rgb[2]);
+    } else {
+      return '#000000';
+    }
+  } else {
+    return '#000000';
+  }
+  
+  // Calculate brightness (perceived luminance)
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+  return brightness > 128 ? '#000000' : '#FFFFFF';
+}
 
 export default DashBoard;

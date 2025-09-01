@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import Logo from "../../../assets/icons/logo.png";
+import Logo from "../../../../public/assets/icons/logo.png";
 import { useNavigate } from "react-router-dom";
-import LoginBackground from "../../../assets/icons/loginBackground.png";
+import LoginBackground from "../../../../public/assets/icons/loginBackground.png";
 import { resetPassword } from "../../Config/auth";
 
 const ResetPassword = () => {

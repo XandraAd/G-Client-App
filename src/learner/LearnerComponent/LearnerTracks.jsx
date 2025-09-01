@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { Link } from "react-router-dom";
 import { FaCediSign } from "react-icons/fa6";
-import CalendarIcon from "../../assets/icons/calendarIcon.png";
+import CalendarIcon from "../../../public/assets/icons/calendarIcon.png";
 import { db } from "../../admin/Config/Firebase.js";
 
 // More vibrant and distinct colors

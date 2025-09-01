@@ -1,11 +1,11 @@
 // Admin Sign Up
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import Logo from "../../../assets/icons/logo.png";
+import Logo from "../../../../public/assets/icons/logo.png";
 import { useNavigate } from "react-router-dom";
 import { auth, db } from "../../Config/Firebase";
 import { createUserWithEmailAndPassword, updateProfile, deleteUser } from "firebase/auth";
-import { collection, doc, setDoc, serverTimestamp } from "firebase/firestore";
+import {  doc, setDoc, serverTimestamp } from "firebase/firestore";
 
 const AdminSignUp = ({ switchForm }) => {
   const [registerUser, setRegisterUser] = useState({
@@ -68,7 +68,7 @@ const AdminSignUp = ({ switchForm }) => {
       });
 
       // 4. Send OTP
-      const otpResponse = await axios.post("http://localhost:5000/api/auth/send-otp", {
+      const otpResponse = await axios.post("/api/auth/send-otp", {
         email: registerUser.email,
       });
 

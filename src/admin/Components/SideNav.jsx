@@ -1,17 +1,17 @@
 import { useState } from "react";
 import { useNavigate,useLocation } from "react-router-dom";
-import LogOutIcon from "../../assets/icons/logoutIcon.png";
-import Logo from "../../assets/icons/logo.png";
+import LogOutIcon from "../../../public/assets/icons/logoutIcon.png";
+import Logo from "../../../public/assets/icons/logo.png";
 import NavLinks from "../Components/NavLinks";
-import DashboardIcon from "../../assets/icons/Glance Horizontal.png";
-import VectorIcon from "../../assets/icons/Vector.png";
-import CommunityIcon from "../../assets/icons/People Community.png";
-import VectorIconBlue from "../../assets/icons/VectorActive.png";
-import HatGraduationIcon from "../../assets/icons/Hat Graduation.png";
-import DashboardIconBlue from "../../assets/icons/GlanceActive.png";
-import LearnerActive from "../../assets/icons/learnerActive.png";
-import InvoiceActive from "../../assets/icons/invoiceActive.png";
-import AdminImg from "../../assets/icons/adminImg.png";
+import DashboardIcon from "../../../public/assets/icons/Glance Horizontal.png";
+import VectorIcon from "../../../public/assets/icons/Vector.png";
+import CommunityIcon from "../../../public/assets/icons/People Community.png";
+import VectorIconBlue from "../../../public/assets/icons/VectorActive.png";
+import HatGraduationIcon from "../../../public/assets/icons/Hat Graduation.png";
+import DashboardIconBlue from "../../../public/assets/icons/GlanceActive.png";
+import LearnerActive from "../../../public/assets/icons/learnerActive.png";
+import InvoiceActive from "../../../public/assets/icons/invoiceActive.png";
+import AdminImg from "../../../public/assets/icons/adminImg.png";
 import { useAuth } from "../contexts/authContext/index"
 import { formatUserData } from "../utils/user";
 
@@ -130,7 +130,7 @@ const admin=formatUserData(currentUser,true);
   return (
     <>
       {/* Desktop Sidebar */}
-      <div className="hidden lg:flex flex-col bg-blue-500 min-h-full  p-2  lg:w-[200px] xl:w-[400px] lg:rounded-b-lg fixed">
+      <div className="hidden lg:flex flex-col bg-blue-500 min-h-full border p-2  lg:w-[200px] xl:w-[400px] lg:rounded-b-lg fixed">
         <div className="min-w-full mb-2 p-6 bg-white flex justify-center items-center shadow-md">
           <img src={Logo} className="w-32 h-auto object-contain" alt="Company Logo" />
         </div>

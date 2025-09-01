@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import bgImage from "../../../assets/icons/computer.png";
+import bgImage from "../../../../public/assets/icons/computer.png";
 import LearnersNavBar from "../LearnersNavBar";
 import Footer from "../../LearnerPages/Footer";
 import { useNavigate } from "react-router-dom";

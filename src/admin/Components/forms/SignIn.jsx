@@ -1,4 +1,4 @@
-import Logo from "../../../assets/icons/logo.png";
+import Logo from "../../../../public/assets/icons/logo.png";
 import { useState } from "react";
 import { adminSignIn } from "../../Config/auth"; // wraps Firebase signInWithEmailAndPassword
 import { useNavigate } from "react-router-dom";

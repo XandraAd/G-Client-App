@@ -2,7 +2,7 @@
 import React from "react";
 import { FaFacebook, FaLinkedin } from "react-icons/fa";
 import { IoIosArrowUp } from "react-icons/io";
-import Logo2 from "../../assets/icons/logo2.png";
+import Logo2 from "../../../public/assets/icons/logo2.png";
 import { Link } from "react-router-dom";
 
 const Footer = () => {

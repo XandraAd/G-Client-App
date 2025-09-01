@@ -30,7 +30,7 @@ const Courses = () => {
 
   const fetchCourses = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/courses");
+      const res = await axios.get("/api/courses");
       const sorted = res.data.sort(
         (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
       );
