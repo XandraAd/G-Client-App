@@ -1,4 +1,4 @@
-import Logo from "../../../assets/icons/logo.png";
+import Logo from "../../../../public/assets/icons/logo.png";
 import { useState } from "react";
 import { adminSignIn } from "../../Config/auth"; // wraps Firebase signInWithEmailAndPassword
 import { useNavigate } from "react-router-dom";
@@ -35,7 +35,7 @@ const SignIn = ({ switchForm, onForgotPassword }) => {
       const idToken = await user.getIdToken();
 
       // 3. Call backend to check role
-      const response = await fetch("http://localhost:5000/api/admin/check-role", {
+      const response = await fetch("/api/admin/check-role", {
         method: "GET",
         headers: {
           Authorization: `Bearer ${idToken}`,

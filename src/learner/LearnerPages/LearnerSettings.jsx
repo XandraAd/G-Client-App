@@ -90,6 +90,7 @@ const handleSave = async () => {
         {
           firstName: profile.firstName,
           lastName: profile.lastName,
+          fullName: `${profile.firstName} ${profile.lastName}`,
           phone: profile.phone,
           location: profile.location,
           role: profile.role,

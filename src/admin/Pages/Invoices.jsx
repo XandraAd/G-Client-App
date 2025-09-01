@@ -216,7 +216,13 @@ const Invoices = () => {
         ) : (
           <div className="space-y-3 md:space-y-4">
             {paginatedInvoices.map((invoice) => {
-              const latestName = nameCache[invoice.userId] || invoice.learnerName || "—";
+             const latestName =
+  (nameCache[invoice.userId] &&
+   `${nameCache[invoice.userId].firstName || ""} ${nameCache[invoice.userId].lastName || ""}`.trim()) ||
+  invoice.learnerName ||
+  "—";
+
+
               const amountDisplay =
                 invoice.amountDisplay ||
                 formatAmountDisplay(invoice.amount, invoice.currency);

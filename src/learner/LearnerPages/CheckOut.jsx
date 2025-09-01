@@ -50,7 +50,7 @@ const cleanObject = (obj) => {
         setIsProcessing(true);
         
         try {
-          const res = await fetch(`http://localhost:5000/api/payment/verify/${paymentRef}`);
+          const res = await fetch(`/api/payment/verify/${paymentRef}`);
           const data = await res.json();
           
           if (data.success) {

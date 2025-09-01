@@ -1,10 +1,10 @@
 import React from "react";
 import { FaSignInAlt, FaSyncAlt, FaGraduationCap, FaArrowDown } from "react-icons/fa";
-import SecureLogin from "../../assets/icons/secure-login.png";
-import Authentication from "../../assets/icons/authentication.png";
-import CodeIcon from "../../assets/icons/codeIcon.png";
-import DataIcon from "../../assets/icons/dataIcon.png";
-import CloudIcon from "../../assets/icons/CloudIcon.png";
+import SecureLogin from "../../../public/assets/icons/secure-login.png";
+import Authentication from "../../../public/assets/icons/authentication.png";
+import CodeIcon from "../../../public/assets/icons/codeIcon.png";
+import DataIcon from "../../../public/assets/icons/dataIcon.png";
+import CloudIcon from "../../../public/assets/icons/CloudIcon.png";
 
 const OnboardingSteps = () => {
   return (

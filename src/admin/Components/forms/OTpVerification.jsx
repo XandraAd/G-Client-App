@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import Logo from "../../../assets/icons/logo.png";
+import Logo from "../../../../public/assets/icons/logo.png";
 import { useLocation, useNavigate } from "react-router-dom";
-import LoginBackground from "../../../assets/icons/loginBackground.png";
+import LoginBackground from "../../../../public/assets/icons/loginBackground.png";
 import axios from "axios";
 
 const OTPVerification = () => {

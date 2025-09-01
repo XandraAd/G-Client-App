@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import axios from "axios";
-import bgImage from "../../../assets/icons/computer.png";
+import bgImage from "../../../../public/assets/icons/computer.png";
 import LearnersNavBar from "../LearnersNavBar";
 import Footer from "../../LearnerPages/Footer";
 

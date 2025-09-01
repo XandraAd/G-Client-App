@@ -2,8 +2,8 @@ import React, { useState ,useEffect} from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { confirmPasswordReset,verifyPasswordResetCode } from "firebase/auth";
 import { auth } from "../../Config/Firebase";
-import Logo from "../../../assets/icons/logo.png";
-import LoginBackground from "../../../assets/icons/loginBackground.png";
+import Logo from "../../../../public/assets/icons/logo.png";
+import LoginBackground from "../../../../public/assets/icons/loginBackground.png";
 
 const NewPassword = () => {
    const [params] = useSearchParams();

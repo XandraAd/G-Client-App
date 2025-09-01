@@ -4,7 +4,7 @@ import LearnersNavBar from "../LearnerComponent/LearnersNavBar";
 import LearnerSignIn from "../LearnerComponent/LearnerForm/LearnerSignIn";
 import LearnerSignUp from "../LearnerComponent/LearnerForm/LearnerSignup";
 import Footer from "./Footer";
-import bgImage from "../../assets/icons/computer.png";
+import bgImage from "../../../public/assets/icons/computer.png";
 
 const LearnerLoginPage = () => {
   const location = useLocation();

@@ -1,6 +1,6 @@
 import React from "react";
-import Discovery1 from "../../assets/icons/discoveryimg1.png";
-import Discovery2 from "../../assets/icons/discoveryimg2.png";
+import Discovery1 from "../../../public/assets/icons/discoveryimg1.png";
+import Discovery2 from "../../../public/assets/icons/discoveryimg2.png";
 
 const LearnerDiscovery = () => {
   const techStack = [

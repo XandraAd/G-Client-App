@@ -1,7 +1,7 @@
-import BgUi from "../../assets/icons/bgUi.png";
-import BgSoftware from "../../assets/icons/bgSoftware.png";
-import BgCloud from "../../assets/icons/bgCloud.png";
-import BgData from "../../assets/icons/bgData.png";
+{/*import BgUi from "../../../public/assets/icons/bgUi.png";
+import BgSoftware from "../../../public/assets/icons/bgSoftware.png";
+import BgCloud from "../../../public/assets/icons/bgCloud.png";
+import BgData from "../../../public/assets/icons/bgData.png";
 
 // Card data array
 const TracksCards = [
@@ -50,4 +50,4 @@ const TracksCards = [
   },
 ];
 
-export default TracksCards;
+export default TracksCards;*/}

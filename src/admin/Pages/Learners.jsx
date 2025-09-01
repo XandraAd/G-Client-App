@@ -18,7 +18,7 @@ const Learners = () => {
     try {
       setLoading(true);
       setError("");
-      const res = await axios.get("http://localhost:5000/api/learners");
+      const res = await axios.get("/api/learners");
       if (Array.isArray(res.data)) {
         setLearners(res.data);
       } else {

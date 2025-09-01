@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import HeroBackground from "../../assets/icons/herobackground.jpg";
+import HeroBackground from "../../../public/assets/icons/herobackground.jpg";
 
 const LearnersHerosection = () => {
   const navigate = useNavigate();

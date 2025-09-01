@@ -74,7 +74,7 @@ const LearnerSignUp = ({ switchForm }) => {
 
       // 4. Send OTP to email
       const otpResponse = await axios.post(
-        "http://localhost:5000/api/auth/send-otp",
+        "/api/auth/send-otp",
         { email }
       );
 

@@ -1,7 +1,7 @@
 import { Outlet, useNavigate } from "react-router-dom";
 import SideNav from "../SideNav";
-import Logo from "../../../assets/icons/logo.png";
-import AdminImg from "../../../assets/icons/adminImg.png";
+import Logo from "../../../../public/assets/icons/logo.png";
+import AdminImg from "../../../../public/assets/icons/adminImg.png";
 import { CiLogout } from "react-icons/ci";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { getAuth, signOut } from "firebase/auth";

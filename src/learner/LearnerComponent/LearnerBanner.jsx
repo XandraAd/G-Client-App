@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import BannerImage from "../../assets/icons/banner.jpg";
+import BannerImage from "../../../public/assets/icons/banner.jpg";
 
 const LearnerBanner = () => {
   return (
