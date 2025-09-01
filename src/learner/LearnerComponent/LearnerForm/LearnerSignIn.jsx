@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
 import {
-  
   signInWithPopup,
   GoogleAuthProvider,
   signOut,
 } from "firebase/auth";
 import { auth, db } from "../../../admin/Config/Firebase.js";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { useLocation, useNavigate } from "react-router-dom";
 import { FcGoogle } from "react-icons/fc";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
@@ -21,23 +20,29 @@ const LearnerSignIn = ({ switchForm }) => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
+  const provider = new GoogleAuthProvider(); // Added provider
 
   // ✅ handle role check on login
   const checkRoleAndRedirect = async (user) => {
-    const userDoc = await getDoc(doc(db, "users", user.uid));
-    if (userDoc.exists()) {
-      const role = userDoc.data().role;
-      if (role === "learner") {
-        const redirectTo = location.state?.redirectTo || "/";
-        navigate(redirectTo, { replace: true });
+    try {
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (userDoc.exists()) {
+        const role = userDoc.data().role;
+        if (role === "learner") {
+          const redirectTo = location.state?.redirectTo || "/learner/dashboard";
+          navigate(redirectTo, { replace: true });
+        } else {
+          // ❌ Prevent admin or other roles from logging in here
+          await signOut(auth);
+          setError("Access denied. Learner account required.");
+        }
       } else {
-        // ❌ Prevent admin or other roles from logging in here
         await signOut(auth);
-        setError("Access denied. Learner account required.");
+        setError("No account record found. Please sign up first.");
       }
-    } else {
-      await signOut(auth);
-      setError("No account record found. Please sign up first.");
+    } catch (error) {
+      console.error("Role check error:", error);
+      setError("An error occurred during authentication.");
     }
   };
 
@@ -56,7 +61,7 @@ const LearnerSignIn = ({ switchForm }) => {
     setLoading(true);
 
     try {
-      const { user } = await learnerSignIn( email, password);
+      const { user } = await learnerSignIn(email, password);
       await checkRoleAndRedirect(user);
     } catch (error) {
       console.error("Sign In Error:", error.message);
@@ -66,41 +71,44 @@ const LearnerSignIn = ({ switchForm }) => {
     }
   };
 
- const handleGoogleSignup = async () => {
-  try {
-    const result = await signInWithPopup(auth, provider);
-    const user = result.user;
+  const handleGoogleSignIn = async () => {
+    setError("");
+    setLoading(true);
+    
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
 
-    // Extract profile info from Google
-    const displayName = user.displayName || "";
-    const [firstName = "", lastName = ""] = displayName.split(" ");
+      // Extract profile info from Google
+      const displayName = user.displayName || "";
+      const [firstName = "", lastName = ""] = displayName.split(" ");
 
-    // Check if user already exists in Firestore
-    const userRef = doc(db, "users", user.uid);
-    const userSnap = await getDoc(userRef);
+      // Check if user already exists in Firestore
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
 
-    if (!userSnap.exists()) {
-      // Create new learner in Firestore
-      await setDoc(userRef, {
-        uid: user.uid,
-        firstName,
-        lastName,
-        email: user.email,
-        role: "learner",
-        emailVerified: user.emailVerified, // google already verifies emails
-        createdAt: new Date(),
-      });
+      if (!userSnap.exists()) {
+        // Create new learner in Firestore
+        await setDoc(userRef, {
+          uid: user.uid,
+          firstName,
+          lastName,
+          email: user.email,
+          role: "learner",
+          emailVerified: user.emailVerified, // google already verifies emails
+          createdAt: new Date(),
+        });
+      }
+      
+      // Now check role and redirect
+      await checkRoleAndRedirect(user);
+    } catch (error) {
+      console.error("Google Sign In Error:", error.message);
+      setError(error.message);
+    } finally {
+      setLoading(false);
     }
-
-    // Navigate to dashboard (or where you want)
-    const redirectPath = location.state?.from || "/learner/dashboard";
-    navigate(redirectPath, { replace: true });
-
-  } catch (error) {
-    console.error("Google Signup Error:", error.message);
-    setError(error.message);
-  }
-};
+  };
 
   const handleForgotPassword = () => {
     navigate("/learner/reset", { replace: true });
@@ -121,8 +129,9 @@ const LearnerSignIn = ({ switchForm }) => {
 
         <button
           type="button"
-          onClick={handleGoogleLogin}
-          className="flex items-center justify-center w-full border border-gray-300 rounded py-2 hover:bg-gray-50"
+          onClick={handleGoogleSignIn}
+          disabled={loading}
+          className="flex items-center justify-center w-full border border-gray-300 rounded py-2 hover:bg-gray-50 disabled:opacity-70 disabled:cursor-not-allowed"
         >
           <FcGoogle className="text-2xl mr-2" />
           Log in using Google
@@ -147,6 +156,7 @@ const LearnerSignIn = ({ switchForm }) => {
               className="w-full border border-gray-300 rounded px-3 py-2"
               placeholder="you@example.com"
               required
+              disabled={loading}
             />
           </div>
 
@@ -162,11 +172,13 @@ const LearnerSignIn = ({ switchForm }) => {
               className="w-full border border-gray-300 rounded px-3 py-2 pr-10"
               placeholder="••••••••"
               required
+              disabled={loading}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 bottom-2.5 text-gray-400 hover:text-gray-600"
+              disabled={loading}
             >
               {showPassword ? (
                 <AiFillEyeInvisible size={20} />
@@ -181,6 +193,7 @@ const LearnerSignIn = ({ switchForm }) => {
               type="button"
               onClick={handleForgotPassword}
               className="text-blue-600 hover:underline"
+              disabled={loading}
             >
               Forgot password?
             </button>
@@ -193,8 +206,14 @@ const LearnerSignIn = ({ switchForm }) => {
               loading ? "opacity-70 cursor-not-allowed" : ""
             }`}
           >
-            <IoIosArrowRoundForward />
-            Login
+            {loading ? (
+              "Logging in..."
+            ) : (
+              <>
+                <IoIosArrowRoundForward />
+                Login
+              </>
+            )}
           </button>
         </form>
 
@@ -204,6 +223,7 @@ const LearnerSignIn = ({ switchForm }) => {
             onClick={switchForm}
             type="button"
             className="text-blue-600 hover:underline"
+            disabled={loading}
           >
             Sign up
           </button>
