@@ -73,7 +73,7 @@ const TrackDetails = () => {
 
   const handleDelete = async () => {
     try {
-      await axios.delete(`http://localhost:5000/api/tracks/${id}`);
+      await axios.delete(`/api/tracks/${id}`);
       navigate("/dashboard/tracks");
     } catch (err) {
       console.error("Failed to delete:", err);

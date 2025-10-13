@@ -35,14 +35,18 @@ const LearnerTracks = () => {
   };
 
   useEffect(() => {
+   
     const fetchTracks = async () => {
+   
       try {
+     
         const tracksRef = collection(db, "tracks");
         const snapshot = await getDocs(tracksRef);
         const tracksData = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
+       
         setTracks(tracksData);
       } catch (error) {
         console.error("Failed to load tracks:", error);
