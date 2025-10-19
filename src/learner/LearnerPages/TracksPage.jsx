@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { CiSearch } from "react-icons/ci";
 import axios from "axios";
+
 import { FaCediSign, FaStar, FaRegStar } from "react-icons/fa6";
 
 const TracksPage = () => {

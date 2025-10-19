@@ -79,7 +79,7 @@ function App() {
           <Route path="/courses" element={<Courses />} />
           <Route path="/tracks" element={<LearnerTracks />} />
           <Route path="/tracksPage" element={<TracksPage />} />
-          <Route path="tracks/:id" element={<LearnerTrackDetails />} />
+          <Route path="/tracks/:id" element={<LearnerTrackDetails />} />
           <Route path="/cartpage" element={<CartPage />} />
           <Route path="/checkout" element={<CheckOut />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />

@@ -3,7 +3,7 @@ import axios from "axios";
 import Cropper from "react-easy-crop";
 import getCroppedImg from "../../utils/cropImage";
 
-const AddTracks = ({ onClose, setTracks, refreshTracks }) => {
+const AddTracks = ({setTracks, refreshTracks }) => {
   const [addNewTracks, setAddNewTracks] = useState({
     trackName: "",
     price: "",
@@ -152,12 +152,7 @@ const handleCropSave = async () => {
 
     <div className="w-full max-w-md lg:max-w-lg xl:max-w-xl h-auto max-h-[90vh] bg-white rounded-lg shadow-lg overflow-hidden relative">
       <div className="h-full overflow-y-auto p-4 sm:p-6">
-        <button
-          onClick={onClose}
-          className="absolute top-3 right-3 sm:top-4 sm:right-4 text-gray-500 hover:text-gray-700 text-xl sm:text-2xl"
-        >
-          ×
-        </button>
+      
 
         <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5">
           <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4">Add new Track</h2>

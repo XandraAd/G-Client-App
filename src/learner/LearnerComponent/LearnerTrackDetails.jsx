@@ -175,6 +175,7 @@ export default function LearnerTrackDetails() {
   const instructor = track?.instructor || "John Doe";
 
   const handleAddToCart = () => {
+    console.log("Clicked add to cart", track);
     const alreadyInCart = cartItems.some((item) => item.id === track.id);
     if (alreadyInCart) {
       toast.error("This track is already in your cart!");
@@ -185,51 +186,48 @@ export default function LearnerTrackDetails() {
   };
 
   const generateLearningOutcomes = (track) => {
-  const outcomes = [];
+    const outcomes = [];
 
-  // Use program keywords if available
-  if (Array.isArray(track.program)) {
-    track.program.forEach((item) => {
-      const skill = typeof item === "string" ? item : item.label || "";
-      if (skill) outcomes.push(`Gain practical skills in ${skill}`);
-    });
-  }
-
-  // Use track title/description keywords
-  if (track.title) {
-    outcomes.push(`Understand the fundamentals of ${track.title}`);
-  }
-
-if (track.description) {
-  const desc = track.description.toLowerCase();
-
-  const outcomesMap = [
-    { keywords: ["software"], text: "Master software development principles" },
-    { keywords: ["data"], text: "Analyze and interpret complex data sets" },
-    { keywords: ["cloud"], text: "Design and manage cloud-based solutions" },
-    { keywords: ["ai", "artificial intelligence"], text: "Implement AI and machine learning models" },
-    { keywords: ["web"], text: "Build responsive and dynamic web applications" },
-    { keywords: ["mobile"], text: "Develop mobile applications for various platforms" },
-    { keywords: ["ui/ux", "design"], text: "Create user-centric designs with UI/UX best practices" },
-  ];
-
-  outcomesMap.forEach(({ keywords, text }) => {
-    if (keywords.some((keyword) => desc.includes(keyword))) {
-      outcomes.push(text);
+    // Use program keywords if available
+    if (Array.isArray(track.program)) {
+      track.program.forEach((item) => {
+        const skill = typeof item === "string" ? item : item.label || "";
+        if (skill) outcomes.push(`Gain practical skills in ${skill}`);
+      });
     }
-  });
-}
 
+    // Use track title/description keywords
+    if (track.title) {
+      outcomes.push(`Understand the fundamentals of ${track.title}`);
+    }
 
+    if (track.description) {
+      const desc = track.description.toLowerCase();
 
+      const outcomesMap = [
+        { keywords: ["software"], text: "Master software development principles" },
+        { keywords: ["data"], text: "Analyze and interpret complex data sets" },
+        { keywords: ["cloud"], text: "Design and manage cloud-based solutions" },
+        { keywords: ["ai", "artificial intelligence"], text: "Implement AI and machine learning models" },
+        { keywords: ["web"], text: "Build responsive and dynamic web applications" },
+        { keywords: ["mobile"], text: "Develop mobile applications for various platforms" },
+        { keywords: ["ui/ux", "design"], text: "Create user-centric designs with UI/UX best practices" },
+      ];
 
-  // Fallback
-  if (outcomes.length === 0) {
-    outcomes.push("Develop key skills and hands-on experience in this track");
-  }
+      outcomesMap.forEach(({ keywords, text }) => {
+        if (keywords.some((keyword) => desc.includes(keyword))) {
+          outcomes.push(text);
+        }
+      });
+    }
 
-  return outcomes;
-};
+    // Fallback
+    if (outcomes.length === 0) {
+      outcomes.push("Develop key skills and hands-on experience in this track");
+    }
+
+    return outcomes;
+  };
 
   // Function to render stars
   const renderStars = (rating) => {
@@ -261,15 +259,13 @@ if (track.description) {
 
   if (!track) return <p className="text-center mt-10">Track not found.</p>;
 
-
-
   return (
-    <div className="flex flex-col">
-      {/* ===== HERO (Blue) ===== */}
-      <section className="bg-blue-700 text-white relative pb-16 md:pb-24">
-        <div className="max-w-6xl mx-auto px-4 py-8 md:py-10">
+    <div className="flex flex-col min-h-screen">
+      {/* ===== HERO SECTION ===== */}
+      <section className="bg-blue-700 text-white relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Breadcrumb */}
-          <nav className="text-xs md:text-sm text-blue-100 mb-4">
+          <nav className="text-sm text-blue-100 mb-6">
             <Link to="/" className="hover:underline">Home</Link>
             <span className="mx-2">›</span>
             <Link to="/tracks" className="hover:underline">Tracks</Link>
@@ -277,95 +273,112 @@ if (track.description) {
             <span className="opacity-90">{track.title}</span>
           </nav>
 
-          {/* Content */}
-          <div className="max-w-full md:max-w-[400px] lg:max-w-lg">
-            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-3">{track.title}</h1>
-            <p className="text-blue-100 text-sm md:text-base leading-relaxed mb-8 max-w-full md:max-w-lg">
-              {track.description}
-            </p>
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left Content */}
+            <div className="lg:col-span-2">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 leading-tight">
+                {track.title}
+              </h1>
+              <p className="text-blue-100 text-lg sm:text-xl leading-relaxed mb-8 max-w-3xl">
+                {track.description}
+              </p>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 text-xs md:text-sm">
-              <div>
-                <p className="text-blue-200">Instructor</p>
-                <p className="font-semibold">{instructor}</p>
-              </div>
-              <div>
-                <p className="text-blue-200">Enrolled students</p>
-                <p className="font-semibold">{enrolledStudents}</p>
-              </div>
-              <div className="col-span-2 md:col-span-1">
-                <p className="text-blue-200">{reviews.length} review{reviews.length !== 1 ? 's' : ''}</p>
-                <div className="flex items-center gap-1 mt-1">
-                  {renderStars(averageRating)}
-                  <span className="text-blue-100 ml-1">({averageRating.toFixed(1)})</span>
+              {/* Stats Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 text-sm sm:text-base">
+                <div className="text-center sm:text-left">
+                  <p className="text-blue-200 mb-1">Instructor</p>
+                  <p className="font-semibold text-white">{instructor}</p>
+                </div>
+                <div className="text-center sm:text-left">
+                  <p className="text-blue-200 mb-1">Enrolled</p>
+                  <p className="font-semibold text-white">{enrolledStudents}</p>
+                </div>
+                <div className="text-center sm:text-left">
+                  <p className="text-blue-200 mb-1">Duration</p>
+                  <p className="font-semibold text-white">{track.duration || "12 weeks"}</p>
+                </div>
+                <div className="text-center sm:text-left">
+                  <p className="text-blue-200 mb-1">Rating</p>
+                  <div className="flex items-center justify-center sm:justify-start gap-1">
+                    {renderStars(averageRating)}
+                    <span className="text-blue-100 ml-1">({averageRating.toFixed(1)})</span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* ===== FLOATING CARD ===== */}
-          {/* Right side - Desktop */}
-        <div className="w-full  border border-black mt-6 md:w-[300px] lg:w-[360px] md:absolute md:right-6 md:top-2 md:h-[760px]">
+            {/* Right Side - Course Card (Desktop) */}
+            <div className="hidden lg:block">
+              <div className="bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden sticky top-8">
+                {/* Image */}
+                {track.bgImg ? (
+                  <img 
+                    src={track.bgImg} 
+                    alt={track.title} 
+                    className="w-full h-48 object-cover" 
+                  />
+                ) : (
+                  <div className="w-full h-48 bg-gray-200" />
+                )}
 
-            <div className="bg-white rounded-lg overflow-hidden shadow-xl border border-gray-100">
-              {/* Image */}
-              {track.bgImg ? (
-                <img 
-                  src={track.bgImg} 
-                  alt={track.title} 
-                  className="w-full p-4 h-[500px] lg:mb-8 object-cover" 
-                />
-              ) : (
-                <div className="w-full h-48 bg-gray-200" />
-              )}
+                {/* Details */}
+                <div className="p-6">
+                  <h3 className="font-bold text-2xl text-gray-900 mb-4">Course Details</h3>
+                  
+                  <div className="space-y-4 text-gray-700">
+                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                      <span className="flex items-center gap-2 font-medium">
+                        <FiClock className="text-blue-600" /> Duration
+                      </span>
+                      <span>{track.duration || "12 weeks"}</span>
+                    </div>
+                    
+                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                      <span className="flex items-center gap-2 font-medium">
+                        <FiBookOpen className="text-blue-600" /> Courses
+                      </span>
+                      <span>{Array.isArray(track.program) ? track.program.length : 0}</span>
+                    </div>
+                    
+                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                      <span className="flex items-center gap-2 font-medium">
+                        <FiUser className="text-blue-600" /> Instructor
+                      </span>
+                      <span>{instructor}</span>
+                    </div>
+                    
+                    <div className="flex justify-between items-center py-2">
+                      <span className="flex items-center gap-2 font-medium">
+                        <FiCalendar className="text-blue-600" /> Start Date
+                      </span>
+                      <span>{track.startDate || "03/2025"}</span>
+                    </div>
+                  </div>
 
-              {/* Details */}
-              <div className="p-4 text-sm text-gray-800">
-                <h2 className="font-bold text-xl lg:mt-12 ">Course Details</h2>
-                <ul className="space-y-2">
-                  <li className="flex justify-between my-2 lg:my-8">
-                    <span className="flex items-center gap-2"><FiClock /> Duration</span>
-                    <span>{track.duration || "12 weeks"}</span>
-                  </li>
-                  <hr className="text-gray-200 h-[1px]"/>
-                  <li className="flex justify-between  my-2 lg:my-8">
-                    <span className="flex items-center gap-2"><FiBookOpen /> Courses</span>
-                    <span>{Array.isArray(track.program) ? track.program.length : 0}</span>
-                  </li>
-                     <hr className="text-gray-200 h-[1px]"/>
-                  <li className="flex justify-between  my-2 lg:my-8">
-                    <span className="flex items-center gap-2"><FiUser /> Instructor</span>
-                    <span>{instructor}</span>
-                  </li>
-                     <hr className="text-gray-200 h-[1px]"/>
-                  <li className="flex justify-between  my-2 lg:my-8">
-                    <span className="flex items-center gap-2"><FiCalendar /> Date</span>
-                    <span>{track.startDate || "03/2025"}</span>
-                  </li>
-               
-                 
-                </ul>
-                <div className="mt-4 text-center">
-                  <p className="font-bold text-lg"> 
-                    <FaCediSign className="inline mr-1" />
-                    {Number(track.value) || 0}
-                  </p>
+                  {/* Price and Enroll Button */}
+                  <div className="mt-6 text-center">
+                    <p className="font-bold text-3xl text-gray-900 mb-4">
+                      <FaCediSign className="inline mr-1" />
+                      {Number(track.value) || 0}
+                    </p>
 
-                  {cartItems.some((item) => item.id === track.id) ? (
-                    <button
-                      disabled
-                      className="bg-gray-300 text-gray-600 px-4 py-2 mt-2 rounded w-full cursor-not-allowed"
-                    >
-                      Already in Cart
-                    </button>
-                  ) : (
-                    <button
-                      onClick={handleAddToCart}
-                      className="bg-blue-600 text-white px-4 py-2 mt-2 rounded hover:bg-blue-700 w-full"
-                    >
-                      Enroll
-                    </button>
-                  )}
+                    {cartItems.some((item) => item.id === track.id) ? (
+                      <button
+                        disabled
+                        className="w-full bg-gray-300 text-gray-600 px-6 py-3 rounded-lg font-semibold cursor-not-allowed"
+                      >
+                        Already in Cart
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleAddToCart}
+                        className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-200"
+                      >
+                        Enroll Now
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -373,50 +386,126 @@ if (track.description) {
         </div>
       </section>
 
-      {/* What You Will Learn Section */}
-      <div className="bg-white border border-gray-200 rounded-lg shadow-sm mx-4  mt-6 md:mt-10 p-6 md:max-w-md max-w-lg lg:max-w-xl xl:max-w-3xl">
-        <h2 className="text-xl md:text-2xl font-bold mb-4 text-gray-800">What You Will Learn</h2>
-        <div className="grid grid-cols-1  gap-4">
-         <ul className="list-disc pl-6 space-y-2">
-    {generateLearningOutcomes(track).map((item, index) => (
-      <li key={index} className="text-gray-700">{item}</li>
-    ))}
-  </ul>
-        </div>
-      </div>
+      {/* ===== MAIN CONTENT ===== */}
+      <div className="flex-1 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left Content Column */}
+            <div className="lg:col-span-2 space-y-8">
+              {/* What You Will Learn Section */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-800">
+                  What You Will Learn
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <ul className="list-disc pl-5 space-y-3 text-gray-700">
+                    {generateLearningOutcomes(track).map((item, index) => (
+                      <li key={index} className="leading-relaxed">{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
 
-
-           {/* Related Tracks */}
-      <div className="max-w-6xl mx-auto px-4 py-10">
-        <h2 className="text-2xl font-bold mb-6 text-gray-800">Explore Related Tracks</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2   gap-6">
-          {relatedTracks.map((relatedTrack) => (
-            <div
-              key={relatedTrack.id}
-              className="grid w-[400px] h-[160px] grid-cols-2 border border-gray-200 rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300"
-            >
-              <img
-                src={relatedTrack.bgImg}
-                alt={relatedTrack.title}
-                className="w-full p-2 h-40 object-cover"
-              />
-              <div className="p-3">
-                <h2 className="font-bold text-xl mb-2">{relatedTrack.title}</h2>
-                <p className="text-sm text-gray-600 line-clamp-3">
-                  {relatedTrack.description}
-                </p>
+              {/* Related Tracks */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-800">
+                  Explore Related Tracks
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  {relatedTracks.map((relatedTrack) => (
+                    <div
+                      key={relatedTrack.id}
+                      className="border border-gray-200 rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-all duration-300 hover:translate-y-[-2px]"
+                    >
+                      <div className="flex flex-col sm:flex-row">
+                        <img
+                          src={relatedTrack.bgImg}
+                          alt={relatedTrack.title}
+                          className="w-full sm:w-32 h-32 sm:h-auto object-cover"
+                        />
+                        <div className="p-4 flex-1">
+                          <h3 className="font-bold text-lg mb-2 text-gray-900 line-clamp-2">
+                            {relatedTrack.title}
+                          </h3>
+                          <p className="text-sm text-gray-600 line-clamp-2">
+                            {relatedTrack.description}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
-          ))}
+
+            {/* Right Sidebar - Course Card (Tablet) */}
+            <div className="lg:hidden">
+              <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden sticky top-8">
+                {track.bgImg && (
+                  <img 
+                    src={track.bgImg} 
+                    alt={track.title} 
+                    className="w-full h-40 object-cover" 
+                  />
+                )}
+                
+                <div className="p-6">
+                  <h3 className="font-bold text-xl text-gray-900 mb-4">Course Details</h3>
+                  
+                  <div className="grid grid-cols-2 gap-4 text-sm text-gray-700 mb-4">
+                    <div className="flex items-center gap-2">
+                      <FiClock className="text-blue-600" />
+                      <span>{track.duration || "12 weeks"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <FiBookOpen className="text-blue-600" />
+                      <span>{Array.isArray(track.program) ? track.program.length : 0} courses</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <FiUser className="text-blue-600" />
+                      <span>{instructor}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <FiCalendar className="text-blue-600" />
+                      <span>{track.startDate || "03/2025"}</span>
+                    </div>
+                  </div>
+
+                  <div className="text-center">
+                    <p className="font-bold text-2xl text-gray-900 mb-4">
+                      <FaCediSign className="inline mr-1" />
+                      {Number(track.value) || 0}
+                    </p>
+
+                    {cartItems.some((item) => item.id === track.id) ? (
+                      <button
+                        disabled
+                        className="w-full bg-gray-300 text-gray-600 px-6 py-3 rounded-lg font-semibold cursor-not-allowed"
+                      >
+                        Already in Cart
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleAddToCart}
+                        className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-200"
+                      >
+                        Enroll Now
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-
-      {/* Mobile Floating Card - Appears at bottom on mobile */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t border-gray-200 p-4 z-10">
+      {/* Mobile Floating Bottom Bar */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white shadow-2xl border-t border-gray-200 p-4 z-50">
         <div className="flex justify-between items-center">
           <div>
-            <p className="font-bold text-lg">
+            <p className="text-sm text-gray-600">Total Price</p>
+            <p className="font-bold text-xl text-gray-900">
               <FaCediSign className="inline mr-1" />
               {Number(track.value) || 0}
             </p>
@@ -424,14 +513,14 @@ if (track.description) {
           {cartItems.some((item) => item.id === track.id) ? (
             <button
               disabled
-              className="bg-gray-300 text-gray-600 px-6 py-3 rounded cursor-not-allowed"
+              className="bg-gray-300 text-gray-600 px-8 py-4 rounded-lg font-semibold cursor-not-allowed flex-1 max-w-xs ml-4"
             >
               Already in Cart
             </button>
           ) : (
             <button
               onClick={handleAddToCart}
-              className="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700"
+              className="bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-200 flex-1 max-w-xs ml-4"
             >
               Enroll Now
             </button>

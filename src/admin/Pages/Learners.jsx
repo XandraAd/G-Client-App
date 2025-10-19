@@ -19,8 +19,22 @@ const Learners = () => {
       setLoading(true);
       setError("");
       const res = await axios.get("/api/learners");
+      console.log("📊 Learners API Response:", res.data); // Debug log
+      
       if (Array.isArray(res.data)) {
         setLearners(res.data);
+        
+        // Log first learner to see available fields
+        if (res.data.length > 0) {
+          console.log("🔍 Sample Learner Data:", res.data[0]);
+          console.log("🖼️ Available Image Fields:", {
+            photoURL: res.data[0].photoURL,
+            avatar: res.data[0].avatar,
+            profilePicture: res.data[0].profilePicture,
+            image: res.data[0].image,
+            photoUrl: res.data[0].photoUrl
+          });
+        }
       } else {
         setLearners([]);
       }
@@ -34,6 +48,26 @@ const Learners = () => {
   useEffect(() => {
     fetchLearners();
   }, []);
+
+  // Function to get learner image with proper fallbacks
+  const getLearnerImage = (learner) => {
+    // Check all possible image fields
+    const imageSources = [
+      learner.photoURL,
+      learner.avatar,
+      learner.profilePicture,
+      learner.image,
+      learner.photoUrl,
+      learner.profileImage,
+      learner.picture
+    ];
+    
+    const validImage = imageSources.find(src => 
+      src && typeof src === 'string' && src.trim() !== ''
+    );
+    
+    return validImage || "/default-avatar.png";
+  };
 
   const enrolledLearners = useMemo(() => {
     if (learners.length > 0 && learners[0].hasPayments !== undefined) {
@@ -86,7 +120,6 @@ const Learners = () => {
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
-    // Scroll to top of the list for better mobile experience
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -142,7 +175,19 @@ const Learners = () => {
                   {/* Mobile view label-value pairs */}
                   <div className="sm:hidden grid grid-cols-2 gap-2">
                     <p className="font-medium text-gray-600">Learner:</p>
-                    <p className="text-gray-800 font-semibold truncate">{l.learnerName || l.name || l.fullName || "—"}</p>
+                    <div className="flex items-center gap-2">
+                      <img
+                        src={getLearnerImage(l)}
+                        alt={l.learnerName || l.name || "Learner"}
+                        className="w-6 h-6 rounded-full object-cover"
+                        onError={(e) => {
+                          e.target.src = "/default-avatar.png";
+                        }}
+                      />
+                      <p className="text-gray-800 font-semibold truncate">
+                        {l.learnerName || l.name || l.fullName || "—"}
+                      </p>
+                    </div>
                     
                     <p className="font-medium text-gray-600">Courses:</p>
                     <p className="text-gray-600">
@@ -182,7 +227,15 @@ const Learners = () => {
                   </div>
 
                   {/* Desktop view */}
-                  <div className="hidden sm:block text-gray-800 font-semibold truncate">
+                  <div className="hidden sm:flex items-center gap-3 text-gray-800 font-semibold truncate">
+                    <img
+                      src={getLearnerImage(l)}
+                      alt={l.learnerName || l.name || "Learner"}
+                      className="w-8 h-8 rounded-full object-cover"
+                      onError={(e) => {
+                        e.target.src = "/default-avatar.png";
+                      }}
+                    />
                     {l.learnerName || l.name || l.fullName || "—"}
                   </div>
                   <div className="hidden sm:block text-center text-sm text-gray-600 truncate px-1">
@@ -237,7 +290,6 @@ const Learners = () => {
 
               {[...Array(totalPages)].map((_, idx) => {
                 const page = idx + 1;
-                // Show limited page numbers on mobile
                 if (typeof window !== 'undefined' && window.innerWidth < 640 && 
                     Math.abs(page - currentPage) > 1 && 
                     page !== 1 && 
@@ -293,9 +345,12 @@ const Learners = () => {
             {/* Profile image */}
             <div className="flex flex-col items-center pt-6 pb-4 px-6">
               <img
-                src={selectedLearner.avatar || "/default-avatar.png"}
+                src={getLearnerImage(selectedLearner)}
                 alt={selectedLearner.learnerName || selectedLearner.name || "Learner"}
-                className="w-24 h-24 rounded-full object-cover mb-4"
+                className="w-24 h-24 rounded-full object-cover mb-4 border-2 border-gray-200"
+                onError={(e) => {
+                  e.target.src = "/default-avatar.png";
+                }}
               />
               <h2 className="text-xl font-semibold text-gray-800 text-center">
                 {selectedLearner.learnerName || selectedLearner.name || selectedLearner.fullName || "—"}

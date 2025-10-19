@@ -16,8 +16,9 @@ export default defineConfig({
         changeOrigin:true,
         secure:false,
         //rewrite:path=>path.replace(/^\/api/,'')
-      }
-    }
+      },
+    },
+     historyApiFallback: true, // 👈 Add this line
     
   } :undefined
  

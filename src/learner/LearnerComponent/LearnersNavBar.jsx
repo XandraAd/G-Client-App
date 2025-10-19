@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { PiSignIn, PiList, PiX } from "react-icons/pi";
 import { FiShoppingCart } from "react-icons/fi";
 import { useCart } from "../../admin/contexts/CartContext";
@@ -6,16 +6,24 @@ import { Link, useNavigate, NavLink } from "react-router-dom";
 import { useLearnerAuth } from "../contexts/LearnerAuthContext";
 import { signOut } from "firebase/auth";
 import { auth } from "../../admin/Config/Firebase";
-import Logo  from "../../../public/assets/icons/logo.png"; 
+import Logo from "../../../public/assets/icons/logo.png"; 
 import { formatUserData } from "../../admin/utils/user";
 
 const LearnersNavBar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { cartItems } = useCart();
+  const { cartItems, isLoading, cartSource } = useCart(); // Get loading state
   const { currentLearner } = useLearnerAuth();
   const learner = formatUserData(currentLearner);
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [displayCartCount, setDisplayCartCount] = useState(0);
+
+  // Debounce cart count to prevent flickering during auth transitions
+  useEffect(() => {
+    if (!isLoading) {
+      setDisplayCartCount(cartItems.length);
+    }
+  }, [cartItems, isLoading]);
 
   const handleLogout = async () => {
     await signOut(auth);
@@ -61,12 +69,17 @@ const LearnersNavBar = () => {
 
           {/* Right Section */}
           <div className="flex items-center space-x-4">
-            {/* Cart */}
+            {/* Cart with loading state */}
             <Link to="/cartpage" className="relative">
               <FiShoppingCart className="h-6 w-6 text-gray-700 hover:text-blue-600" />
-              {cartItems.length > 0 && (
+              {!isLoading && displayCartCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                  {cartItems.length}
+                  {displayCartCount}
+                </span>
+              )}
+              {isLoading && (
+                <span className="absolute -top-2 -right-2 bg-gray-400 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                  ...
                 </span>
               )}
             </Link>

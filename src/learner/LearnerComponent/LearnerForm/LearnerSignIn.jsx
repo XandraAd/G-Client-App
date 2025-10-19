@@ -11,6 +11,7 @@ import { FcGoogle } from "react-icons/fc";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { IoIosArrowRoundForward } from "react-icons/io";
 import { learnerSignIn } from "../../../admin/Config/auth.js";
+import { useCart } from "../../../admin/contexts/CartContext"; // Import cart context
 
 const LearnerSignIn = ({ switchForm }) => {
   const [email, setEmail] = useState("");
@@ -20,7 +21,8 @@ const LearnerSignIn = ({ switchForm }) => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
-  const provider = new GoogleAuthProvider(); // Added provider
+  const provider = new GoogleAuthProvider();
+
 
   // ✅ handle role check on login
   const checkRoleAndRedirect = async (user) => {
@@ -29,6 +31,9 @@ const LearnerSignIn = ({ switchForm }) => {
       if (userDoc.exists()) {
         const role = userDoc.data().role;
         if (role === "learner") {
+          // OPTIONAL: Merge guest cart with user cart after successful login
+          // await mergeGuestCart();
+          
           const redirectTo = location.state?.redirectTo || "/learner/dashboard";
           navigate(redirectTo, { replace: true });
         } else {
@@ -61,6 +66,9 @@ const LearnerSignIn = ({ switchForm }) => {
     setLoading(true);
 
     try {
+      // Clear guest cart before sign in to start fresh
+      localStorage.removeItem("guestCart");
+      
       const { user } = await learnerSignIn(email, password);
       await checkRoleAndRedirect(user);
     } catch (error) {
@@ -76,6 +84,9 @@ const LearnerSignIn = ({ switchForm }) => {
     setLoading(true);
     
     try {
+      // Clear guest cart before sign in to start fresh
+      localStorage.removeItem("guestCart");
+      
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
@@ -95,7 +106,7 @@ const LearnerSignIn = ({ switchForm }) => {
           lastName,
           email: user.email,
           role: "learner",
-          emailVerified: user.emailVerified, // google already verifies emails
+          emailVerified: user.emailVerified,
           createdAt: new Date(),
         });
       }

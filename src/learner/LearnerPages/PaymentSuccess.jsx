@@ -1,11 +1,13 @@
 // PaymentSuccess.jsx
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { useCart } from "../../admin/contexts/CartContext"; // Import the useCart hook
 
 export default function PaymentSuccess() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const [status, setStatus] = useState("verifying");
+  const {clearCart} = useCart();  // this is to clear the cart after successful payment
 
   useEffect(() => {
     const verifyPayment = async () => {
@@ -22,8 +24,11 @@ export default function PaymentSuccess() {
         const res = await fetch(`http://localhost:5000/api/payment/verify/${paymentRef}`);
         const data = await res.json();
         
-        if (data.success) {
+       if (data.success) {
           setStatus("success");
+          // Clear the cart after successful payment verification
+          await clearCart();
+          console.log("Cart cleared after successful payment");
         } else {
           setStatus("failed");
         }
@@ -34,7 +39,7 @@ export default function PaymentSuccess() {
     };
 
     verifyPayment();
-  }, [params]);
+  }, [params, clearCart]);
 
   if (status === "verifying") {
     return (

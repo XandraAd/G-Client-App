@@ -9,97 +9,129 @@ export const useCart = () => useContext(CartContext);
 export const CartProvider = ({ children }) => {
   const { currentUser, userLoggedIn } = useAuth();
   const [cartItems, setCartItems] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [cartSource, setCartSource] = useState('guest');
 
-  // ------------------
-  // Helper: Local guest cart
-  // ------------------
-  const getGuestCart = () =>
-    JSON.parse(localStorage.getItem("guestCart")) || [];
+  const getGuestCart = () => {
+    try {
+      return JSON.parse(localStorage.getItem("guestCart")) || [];
+    } catch {
+      return [];
+    }
+  };
 
   const saveGuestCart = (cart) => {
     localStorage.setItem("guestCart", JSON.stringify(cart));
     setCartItems(cart);
+    setCartSource('guest');
   };
 
-  // ------------------
-  // Firestore cart fetch
-  // ------------------
   const fetchCart = async (uid) => {
+    if (!uid) return;
+    setIsLoading(true);
     try {
       const res = await axios.get(`http://localhost:5000/api/cart/${uid}`);
-      setCartItems(res.data || []);
+      const userCart = res.data || [];
+      setCartItems(userCart);
+      setCartSource('user');
     } catch (err) {
       console.error("Error fetching cart:", err);
-      setCartItems([]);
+      setCartSource('user');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // ------------------
-  // Add to cart
-  // ------------------
-const addToCart = async (item) => {
-  const cartItem = {
-    id: item.id || item.trackId,   // make sure you have a unique ID
-    title: item.title,
-    instructor: item.instructor,
-    image: item.bgImg || item.image,
-    duration: item.duration || "12 weeks",
-    courses: item.courses || 1,
-    price: Number(item.price) || Number(item.value),   // ✅ enforce price
+  const addToCart = async (item) => {
+    const cartItem = {
+      id: item.id || item.trackId,
+      title: item.title,
+      instructor: item.instructor,
+      image: item.bgImg || item.image,
+      duration: item.duration || "12 weeks",
+      courses: item.courses || 1,
+      price: Number(item.price) || Number(item.value),
+    };
+
+    if (!userLoggedIn) {
+      const guestCart = getGuestCart();
+      const existingItemIndex = guestCart.findIndex(ci => ci.id === cartItem.id);
+      if (existingItemIndex === -1) {
+        guestCart.push(cartItem);
+        saveGuestCart(guestCart);
+      }
+    } else {
+      try {
+        await axios.post(`http://localhost:5000/api/cart/${currentUser.uid}`, cartItem);
+        await fetchCart(currentUser.uid);
+      } catch (error) {
+        console.error("Error adding to user cart:", error);
+      }
+    }
   };
 
-  if (!userLoggedIn) {
-    const guestCart = getGuestCart();
-    guestCart.push(cartItem);
-    saveGuestCart(guestCart);
-  } else {
-    await axios.post(`http://localhost:5000/api/cart/${currentUser.uid}`, cartItem);
-    fetchCart(currentUser.uid);
-  }
-};
-
-
-  // ------------------
-  // Remove from cart
-  // ------------------
   const removeFromCart = async (id) => {
     if (!userLoggedIn) {
       const guestCart = getGuestCart().filter((i) => i.id !== id);
       saveGuestCart(guestCart);
     } else {
-      await axios.delete(`http://localhost:5000/api/cart/${currentUser.uid}/${id}`);
-      fetchCart(currentUser.uid);
+      try {
+        await axios.delete(`http://localhost:5000/api/cart/${currentUser.uid}/${id}`);
+        await fetchCart(currentUser.uid);
+      } catch (error) {
+        console.error("Error removing from user cart:", error);
+      }
     }
   };
 
-  // ------------------
-  // Clear cart
-  // ------------------
   const clearCart = async () => {
     if (!userLoggedIn) {
       localStorage.removeItem("guestCart");
       setCartItems([]);
     } else {
-      await axios.delete(`http://localhost:5000/api/cart/${currentUser.uid}`);
-      setCartItems([]);
+      try {
+        await axios.delete(`http://localhost:5000/api/cart/${currentUser.uid}`);
+        setCartItems([]);
+      } catch (error) {
+        console.error("Error clearing user cart:", error);
+      }
     }
   };
 
-  // ------------------
-  // Merge guest cart → Firestore after login
-  // ------------------
+  // Clear user cart specifically
+  const clearUserCart = async () => {
+    if (!userLoggedIn || !currentUser) return;
+    try {
+      await axios.delete(`http://localhost:5000/api/cart/${currentUser.uid}`);
+      setCartItems([]);
+    } catch (error) {
+      console.error("Error clearing user cart:", error);
+    }
+  };
+
+  // Initialize with empty cart on sign-in
+  const initializeWithEmptyCart = async () => {
+    if (!userLoggedIn || !currentUser) return;
+    try {
+      localStorage.removeItem("guestCart"); // Clear guest cart
+      await axios.delete(`http://localhost:5000/api/cart/${currentUser.uid}`);
+      setCartItems([]);
+      setCartSource('user');
+    } catch (error) {
+      console.error("Error initializing empty cart:", error);
+      setCartItems([]); // Still set empty cart even if API fails
+    }
+  };
+
   useEffect(() => {
     if (userLoggedIn && currentUser) {
-      const guestCart = getGuestCart();
-      if (guestCart.length > 0) {
-        guestCart.forEach(async (item) => {
-          await axios.post(`http://localhost:5000/api/cart/${currentUser.uid}`, item);
-        });
-        localStorage.removeItem("guestCart");
-      }
-      fetchCart(currentUser.uid);
+      // ✅ RECOMMENDED: Start with fresh empty cart on login
+      initializeWithEmptyCart();
     } else {
-      setCartItems(getGuestCart());
+      // User logged out - show guest cart
+      const guestCart = getGuestCart();
+      setCartItems(guestCart);
+      setCartSource('guest');
     }
   }, [userLoggedIn, currentUser]);
 
@@ -110,12 +142,13 @@ const addToCart = async (item) => {
         addToCart,
         removeFromCart,
         clearCart,
+        clearUserCart,
         fetchCart,
+        isLoading,
+        cartSource,
       }}
     >
       {children}
     </CartContext.Provider>
   );
 };
-
-
