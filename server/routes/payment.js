@@ -85,7 +85,7 @@ router.post("/initialize", async (req, res) => {
         callback_url: "http://localhost:5173/payment-success",
         metadata: {
           userId,
-          learnerName,
+          learnerName:learnerName || "",
           cartItems: JSON.stringify(validatedCartItems)
         }
       },
@@ -237,28 +237,51 @@ router.get("/verify/:reference", async (req, res) => {
       console.log("Invoice saved with cartItems:", cartItems);
 
       // Update user's document with purchased tracks
-      if (paymentData.userId && cartItems.length > 0) {
-        const userRef = db.collection("users").doc(paymentData.userId);
-        
-        // Extract track IDs from cartItems
-        const purchasedTrackIds = cartItems
-          .filter(item => item.id)
-          .map(item => item.id);
-        
-        if (purchasedTrackIds.length > 0) {
-          await userRef.set(
-            {
-              invoices: admin.firestore.FieldValue.arrayUnion(reference),
-              purchasedTracks: admin.firestore.FieldValue.arrayUnion(...purchasedTrackIds),
-              pendingPayments: admin.firestore.FieldValue.arrayRemove(reference),
-              updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-            },
-            { merge: true }
-          );
-          console.log("User enrolled in tracks:", purchasedTrackIds);
-        }
-      }
+     // Update user's document with purchased tracks AND update track enrollment counts
+if (paymentData.userId && cartItems.length > 0) {
+  const userRef = db.collection("users").doc(paymentData.userId);
+  
+  // Extract track IDs from cartItems
+  const purchasedTrackIds = cartItems
+    .filter(item => item.id)
+    .map(item => item.id);
+  
+  if (purchasedTrackIds.length > 0) {
+    await userRef.set(
+      {
+        invoices: admin.firestore.FieldValue.arrayUnion(reference),
+        purchasedTracks: admin.firestore.FieldValue.arrayUnion(...purchasedTrackIds),
+        pendingPayments: admin.firestore.FieldValue.arrayRemove(reference),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+    console.log("User enrolled in tracks:", purchasedTrackIds);
 
+    // ✅ CRITICAL FIX: Update enrollment counts in tracks collection
+    console.log("🔄 Updating track enrollment counts...");
+    for (const trackId of purchasedTrackIds) {
+      try {
+        const trackRef = db.collection("tracks").doc(trackId);
+        const trackDoc = await trackRef.get();
+        
+        if (trackDoc.exists) {
+          const currentStudents = trackDoc.data().students || 0;
+          await trackRef.update({
+            students: admin.firestore.FieldValue.increment(1),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+          });
+          console.log(`✅ Incremented students count for track ${trackId}: ${currentStudents} → ${currentStudents + 1}`);
+        } else {
+          console.warn(`⚠️ Track ${trackId} not found in database`);
+        }
+      } catch (trackError) {
+        console.error(`❌ Failed to update track ${trackId}:`, trackError);
+      }
+    }
+    console.log("🎯 Track enrollment updates completed");
+  }
+}
       return res.json({
         success: true,
         message: "✅ Payment verified & invoice created",
