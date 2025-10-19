@@ -148,9 +148,11 @@ const StatCards = ({ stats, loading }) => {
   const cardsConfig = useStatCardsConfig(stats);
   
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
       {cardsConfig.map((card) => (
-        <StatCard key={card.title} {...card} loading={loading} />
+        <div key={card.title} className="min-w-0">
+          <StatCard {...card} loading={loading} />
+        </div>
       ))}
     </div>
   );
@@ -271,33 +273,8 @@ const Report = () => {
   }, [invoices, tracks, stats, authorized, loading]);
 
 
-  // In your Report component, add this debug effect
-useEffect(() => {
-  console.log("🔍 DEBUG - Top Courses Data:", {
-    topCourses: stats?.topCourses,
-    hasTopCourses: !!stats?.topCourses,
-    topCoursesLength: stats?.topCourses?.length,
-    sampleTopCourse: stats?.topCourses?.[0],
-    stats: stats
-  });
-}, [stats]);
+ 
 
-// Add this useEffect in your Report component
-useEffect(() => {
-  console.log("🔍 DEBUG - Stats Data:", {
-    stats: stats,
-    hasStats: !!stats,
-    statKeys: stats ? Object.keys(stats) : [],
-    sampleValues: stats ? {
-      totalLearners: stats.totalLearners,
-      totalRevenue: stats.totalRevenue,
-      totalInvoices: stats.totalInvoices,
-      totalCourses: stats.totalCourses,
-      newEnrollments: stats.newEnrollments,
-      averageRating: stats.averageRating
-    } : 'No stats'
-  });
-}, [stats]);
 
   // Initial load effects
   useEffect(() => {
