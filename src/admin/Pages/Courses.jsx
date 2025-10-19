@@ -28,9 +28,39 @@ const Courses = () => {
     currentPage * itemsPerPage
   );
 
+  // Function to get course image with fallback
+  const getCourseImage = (course) => {
+    const imageSources = [
+      course.bgImg,
+      course.image,
+      course.thumbnail,
+      course.coverImage,
+      course.photoURL,
+      course.imageUrl
+    ];
+    
+    const validImage = imageSources.find(src => 
+      src && typeof src === 'string' && src.trim() !== ''
+    );
+    
+    return validImage || "/default-course.png"; // Make sure you have this fallback image
+  };
+
   const fetchCourses = async () => {
     try {
       const res = await axios.get("/api/courses");
+      console.log("📚 Courses API Response:", res.data); // Debug log
+      
+      // Log image data for debugging
+      if (res.data.length > 0) {
+        console.log("🖼️ Course Images:", res.data.map(course => ({
+          title: course.title,
+          bgImg: course.bgImg,
+          image: course.image,
+          hasImage: !!getCourseImage(course)
+        })));
+      }
+      
       const sorted = res.data.sort(
         (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
       );
@@ -139,11 +169,11 @@ const Courses = () => {
       </ReactModal>
 
       <section className="py-6 min-h-full mb-10">
-        <div className=" grid grid-cols-4 text-sm font-medium text-gray-600 mb-2 px-4">
+        <div className="grid grid-cols-4 text-sm font-medium text-gray-600 mb-2 px-4">
           <p>Courses</p>
           <p className="text-center">Track</p>
           <p className="text-center">Date Joined</p>
-          <p className="text-center"></p>
+          <p className="text-center">Actions</p>
         </div>
 
         {filteredCourses.length === 0 ? (
@@ -159,34 +189,49 @@ const Courses = () => {
               >
                 <div className="flex items-center gap-3">
                   <img
-                    src={course.bgImg}
+                    src={getCourseImage(course)}
                     alt={course.title}
-                    className="w-10 h-10 rounded-md object-cover"
+                    className="w-10 h-10 rounded-md object-cover border border-gray-200"
+                    onError={(e) => {
+                      // Fallback if image fails to load
+                      e.target.src = "/default-course.png";
+                      e.target.onerror = null; // Prevent infinite loop
+                    }}
                   />
                   <div>
                     <p className="font-semibold text-gray-800">
                       {course.title}
                     </p>
-                  
+                    <p className="text-sm text-gray-500 truncate max-w-[200px]">
+                      {course.description || "No description"}
+                    </p>
                   </div>
                 </div>
                 <div className="text-center capitalize text-sm text-gray-700 font-medium">
-                  {course.track?.title || "—"}
+                  {course.track?.title || course.track || "—"}
                 </div>
                 <div className="text-center text-sm text-gray-500">
                   {course.timestamp
                     ? new Date(course.timestamp).toLocaleDateString()
+                    : course.createdAt
+                    ? new Date(course.createdAt).toLocaleDateString()
                     : "—"}
                 </div>
                 <div className="flex justify-center gap-2">
-                  <FiEdit2
-                    className="text-green-700 text-[24px] p-1 rounded-full hover:bg-green-100 cursor-pointer"
+                  <button
                     onClick={() => handleEdit(course)}
-                  />
-                  <MdDeleteOutline
-                    className="text-red-600 text-[24px] p-1 rounded-full hover:bg-red-100 cursor-pointer"
+                    className="text-green-700 hover:bg-green-100 p-1 rounded-full transition-colors"
+                    title="Edit course"
+                  >
+                    <FiEdit2 className="text-[20px]" />
+                  </button>
+                  <button
                     onClick={() => handleDelete(course.id)}
-                  />
+                    className="text-red-600 hover:bg-red-100 p-1 rounded-full transition-colors"
+                    title="Delete course"
+                  >
+                    <MdDeleteOutline className="text-[20px]" />
+                  </button>
                 </div>
               </div>
             ))}
@@ -243,4 +288,3 @@ const Courses = () => {
 };
 
 export default Courses;
-

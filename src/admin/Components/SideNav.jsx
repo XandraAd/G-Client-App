@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate,useLocation } from "react-router-dom";
+import { useState, useEffect } from "react"; // Add useEffect
+import { useNavigate, useLocation } from "react-router-dom";
 import LogOutIcon from "../../../public/assets/icons/logoutIcon.png";
 import Logo from "../../../public/assets/icons/logo.png";
 import NavLinks from "../Components/NavLinks";
@@ -15,7 +15,6 @@ import AdminImg from "../../../public/assets/icons/adminImg.png";
 import { useAuth } from "../contexts/authContext/index"
 import { formatUserData } from "../utils/user";
 
-
 const navItems = [
   {
     title: "Dashboard",
@@ -23,15 +22,18 @@ const navItems = [
     icon: DashboardIcon,
     activeIcon: DashboardIconBlue,
   },
-  { title: "Invoices",
-     path: "invoices", 
-     icon: VectorIcon ,
-    activeIcon:InvoiceActive},
-
-  { title: "Learners", 
+  { 
+    title: "Invoices",
+    path: "invoices", 
+    icon: VectorIcon,
+    activeIcon: InvoiceActive
+  },
+  { 
+    title: "Learners", 
     path: "learners", 
     icon: CommunityIcon,
-  activeIcon:LearnerActive},
+    activeIcon: LearnerActive
+  },
   {
     title: "Tracks",
     path: "tracks",
@@ -50,19 +52,37 @@ const navItems = [
     icon: DashboardIcon,
     activeIcon: DashboardIconBlue,
   },
-   
 ];
 
-function SideNav({ isOpen, onClose}) {
+function SideNav({ isOpen, onClose }) {
   const navigate = useNavigate();
-   const location = useLocation();
+  const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   const [activeRoute, setActiveRoute] = useState(navItems[0].title);
+  const { currentUser, refreshUser } = useAuth(); // Add refreshUser
+  const [userPhoto, setUserPhoto] = useState(null); // Add state for photo
   
-const {currentUser}=useAuth();
-const admin=formatUserData(currentUser,true);
+  const admin = formatUserData(currentUser, true);
 
+  // Update photo when currentUser changes
+  useEffect(() => {
+    if (currentUser?.photoURL) {
+      setUserPhoto(currentUser.photoURL);
+    }
+  }, [currentUser]);
 
+  // Force refresh user data when component mounts or location changes
+  useEffect(() => {
+    const refreshUserData = async () => {
+      try {
+        await refreshUser();
+      } catch (error) {
+        console.error("Error refreshing user data:", error);
+      }
+    };
+    
+    refreshUserData();
+  }, [location.pathname, refreshUser]);
 
   const handleLogout = async () => {
     try {
@@ -79,58 +99,59 @@ const admin=formatUserData(currentUser,true);
     setActiveRoute(tab);
   };
 
- const renderUserInfo = () => (
-  <div className="flex flex-col items-start gap-2 px-4 py-3 text-white text-xs">
-    <div className="flex items-center gap-3 w-full justify-between">
-      <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={() => {
-            console.log("Current pathname:", location.pathname);
-            console.log("Navigating to manage-profile");
-            navigate("manage-profile");
-            setTimeout(
-              () => console.log("New pathname:", window.location.pathname),
-              100
-            );
-          }}
-          className="focus:outline-none"
-          aria-label="Edit profile"
-        >
-          <img
-            src={
-            admin?.photoURL || AdminImg
-            }
-            alt="User avatar"
-            className="w-8 h-8 rounded-full object-cover"
-          />
-        </button>
+  const renderUserInfo = () => (
+    <div className="flex flex-col items-start gap-2 px-4 py-3 text-white text-xs">
+      <div className="flex items-center gap-3 w-full justify-between">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              console.log("Navigating to manage-profile");
+              navigate("manage-profile");
+            }}
+            className="focus:outline-none"
+            aria-label="Edit profile"
+          >
+            <img
+              src={
+                userPhoto || 
+                admin?.photoURL || 
+                currentUser?.photoURL || 
+                AdminImg
+              }
+              alt="User avatar"
+              className="w-8 h-8 rounded-full object-cover"
+              onError={(e) => {
+                // Fallback if image fails to load
+                e.target.src = AdminImg;
+              }}
+            />
+          </button>
 
-        <div className="leading-tight">
-          <h6 className="font-semibold text-sm">
-            {admin?.name || currentUser?.displayName || "User"}
-          </h6>
-          <p className="text-[10px]">
-            {admin?.email || "Loading..."}
-          </p>
-          {/* Show role or admin status */}
-          <p className="text-[10px] italic">
-          {admin?.role || "Admin"}
-          </p>
+          <div className="leading-tight">
+            <h6 className="font-semibold text-sm">
+              {admin?.name || currentUser?.displayName || "User"}
+            </h6>
+            <p className="text-[10px]">
+              {admin?.email || currentUser?.email || "Loading..."}
+            </p>
+            <p className="text-[10px] italic">
+              {admin?.role || "Admin"}
+            </p>
+          </div>
         </div>
-      </div>
 
-      <button onClick={handleLogout} disabled={isLoading}>
-        <img src={LogOutIcon} alt="Logout" className="w-4 h-4" />
-      </button>
+        <button onClick={handleLogout} disabled={isLoading}>
+          <img src={LogOutIcon} alt="Logout" className="w-4 h-4" />
+        </button>
+      </div>
     </div>
-  </div>
-);
+  );
 
   return (
     <>
       {/* Desktop Sidebar */}
-      <div className="hidden lg:flex flex-col bg-blue-500 min-h-full border p-2  lg:w-[200px] xl:w-[400px] lg:rounded-b-lg fixed">
+      <div className="hidden lg:flex flex-col bg-blue-500 min-h-full p-2 lg:w-[200px] xl:w-[400px] lg:rounded-b-lg fixed">
         <div className="min-w-full mb-2 p-6 bg-white flex justify-center items-center shadow-md">
           <img src={Logo} className="w-32 h-auto object-contain" alt="Company Logo" />
         </div>
@@ -158,9 +179,6 @@ const admin=formatUserData(currentUser,true);
           </div>
         </div>
       )}
-
-  
-
     </>
   );
 }

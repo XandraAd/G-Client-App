@@ -1,12 +1,13 @@
-// learner.js
+// learner.js - UPDATED TO STORE AND RETRIEVE LEARNER IMAGES
 import express from "express";
 import { v4 as uuidv4 } from "uuid";
 import admin from "firebase-admin";
 import { db } from "../firebase-admin.js";
+import crypto from "crypto";
 
 const router = express.Router();
 
-// Helper function to extract user name from various field possibilities
+// Helper function to extract user name
 const extractUserName = (userData) => {
   if (userData.firstName && userData.lastName) {
     return `${userData.firstName} ${userData.lastName}`;
@@ -20,8 +21,98 @@ const extractUserName = (userData) => {
   return "Unknown Learner";
 };
 
+// Helper function to extract profile image from user data
+const extractProfileImage = (userData) => {
+  const imageSources = [
+    userData.photoURL,
+    userData.photoUrl,
+    userData.avatar,
+    userData.profilePicture,
+    userData.profileImage,
+    userData.image,
+    userData.picture,
+    userData.avatarUrl,
+    userData.profilePhoto
+  ];
+  
+  return imageSources.find(src => 
+    src && typeof src === 'string' && src.trim() !== ''
+  ) || null;
+};
 
-// get all learners - UPDATED TRACK EXTRACTION
+// Generate initials from name
+const getInitials = (name) => {
+  if (!name || name === "Unknown Learner") return "U";
+  
+  const names = name.split(' ');
+  let initials = names[0].substring(0, 1).toUpperCase();
+  
+  if (names.length > 1) {
+    initials += names[names.length - 1].substring(0, 1).toUpperCase();
+  }
+  
+  return initials;
+};
+
+// Generate a consistent color based on user ID or name
+const generateColor = (seed) => {
+  const colors = [
+    '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', 
+    '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9',
+    '#F8C471', '#82E0AA', '#F1948A', '#85C1E9', '#D7BDE2',
+    '#F9E79F', '#ABEBC6', '#AED6F1', '#FAD7A0', '#D2B4DE'
+  ];
+  
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = seed.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  
+  const index = Math.abs(hash) % colors.length;
+  return colors[index];
+};
+
+// Generate avatar URL using UI Avatars service
+const generateAvatarUrl = (name, seed, size = 200) => {
+  const initials = getInitials(name);
+  const color = generateColor(seed).replace('#', '');
+  
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&background=${color}&color=fff&size=${size}&bold=true&font-size=0.5`;
+};
+
+// NEW: Store generated avatar in user document
+const storeAvatarInUserDocument = async (userId, avatarUrl) => {
+  try {
+    await db.collection("users").doc(userId).update({
+      photoURL: avatarUrl,
+      avatar: avatarUrl,
+      profilePicture: avatarUrl,
+      lastAvatarUpdate: admin.firestore.FieldValue.serverTimestamp()
+    });
+    console.log(`✅ Stored avatar for user ${userId}`);
+    return true;
+  } catch (error) {
+    console.error(`❌ Failed to store avatar for user ${userId}:`, error);
+    return false;
+  }
+};
+
+// NEW: Check if user needs avatar update (older than 30 days or never set)
+const needsAvatarUpdate = (userData) => {
+  const hasAvatar = !!(userData.photoURL || userData.avatar || userData.profilePicture);
+  const lastUpdate = userData.lastAvatarUpdate;
+  
+  if (!hasAvatar) return true;
+  if (!lastUpdate) return true;
+  
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const lastUpdateDate = lastUpdate.toDate ? lastUpdate.toDate() : new Date(lastUpdate);
+  
+  return lastUpdateDate < thirtyDaysAgo;
+};
+
+// get all learners - UPDATED TO STORE AND RETRIEVE AVATARS
 router.get("/", async (req, res) => {
   try {
     const snapshot = await db.collection("users").get();
@@ -30,6 +121,24 @@ router.get("/", async (req, res) => {
     const allLearners = await Promise.all(snapshot.docs.map(async (doc) => {
       try {
         const data = doc.data();
+        const userId = doc.id;
+        
+        // Get user name
+        const learnerName = extractUserName(data);
+        
+        // Check for existing profile image
+        const existingProfileImage = extractProfileImage(data);
+        
+        let finalAvatarUrl = existingProfileImage;
+        
+        // Generate and store avatar if needed
+        if (!existingProfileImage || needsAvatarUpdate(data)) {
+          const generatedAvatarUrl = generateAvatarUrl(learnerName, userId);
+          finalAvatarUrl = generatedAvatarUrl;
+          
+          // Store the avatar in user document (async - don't wait for completion)
+          storeAvatarInUserDocument(userId, generatedAvatarUrl).catch(console.error);
+        }
         
         // Check if user has made payments
         const paymentsSnapshot = await db.collection("payments")
@@ -47,10 +156,6 @@ router.get("/", async (req, res) => {
           for (const paymentDoc of paymentsSnapshot.docs) {
             const paymentData = paymentDoc.data();
             
-            // DEBUG: Log payment data to see structure
-            console.log(`Payment data for user ${doc.id}:`, paymentData);
-            
-            // Method 1: Check for cartItems (most common)
             if (Array.isArray(paymentData.cartItems)) {
               paymentData.cartItems.forEach(item => {
                 const trackId = item.id || item.trackId || item.courseId || item.productId;
@@ -66,7 +171,6 @@ router.get("/", async (req, res) => {
               });
             }
 
-            // Method 2: Check for items array
             if (Array.isArray(paymentData.items)) {
               paymentData.items.forEach(item => {
                 const trackId = item.id || item.trackId || item.courseId || item.productId;
@@ -82,7 +186,6 @@ router.get("/", async (req, res) => {
               });
             }
             
-            // Method 3: Check for single item fields (common in some payment systems)
             if (paymentData.trackId || paymentData.courseId || paymentData.productId) {
               allTracks.push({
                 id: paymentData.trackId || paymentData.courseId || paymentData.productId,
@@ -92,7 +195,6 @@ router.get("/", async (req, res) => {
               });
             }
             
-            // Method 4: Check metadata field (common in Stripe and other payment processors)
             if (paymentData.metadata) {
               let metadata = paymentData.metadata;
               if (typeof metadata === 'string') {
@@ -113,7 +215,6 @@ router.get("/", async (req, res) => {
               }
             }
             
-            // Method 5: If no track data found but payment exists, create generic entry
             if (allTracks.length === 0 && (paymentData.amount || paymentData.price)) {
               allTracks.push({
                 id: `payment-${paymentDoc.id}`,
@@ -123,7 +224,6 @@ router.get("/", async (req, res) => {
               });
             }
             
-            // Add to total amount
             if (paymentData.amount) {
               totalAmount += parseFloat(paymentData.amount);
             } else if (paymentData.price) {
@@ -142,13 +242,15 @@ router.get("/", async (req, res) => {
         
         const uniqueTracks = Array.from(uniqueTracksMap.values());
         
-        // Get user data with better fallbacks
-        const learnerName = extractUserName(data);
-        
         return {
           id: doc.id,
           learnerName,
           email: data.email || "",
+          // PROFILE IMAGES - now stored in database
+          photoURL: finalAvatarUrl,
+          avatar: finalAvatarUrl,
+          profilePicture: finalAvatarUrl,
+          image: finalAvatarUrl,
           tracks: uniqueTracks,
           trackCount: uniqueTracks.length,
           enrolled: hasPayments,
@@ -170,15 +272,8 @@ router.get("/", async (req, res) => {
       }
     }));
 
-    // Filter out null values
-   // Keep only users who are actually learners and have enrolled
-const validLearners = allLearners.filter(l => l !== null && l.enrolled);
-
-res.status(200).json(validLearners);
-
-    
-    // DEBUG: Log the final learners data
-    console.log("Final learners data:", validLearners);
+    // Filter out null values and keep only enrolled learners
+    const validLearners = allLearners.filter(l => l !== null && l.enrolled);
     
     res.status(200).json(validLearners);
   } catch (error) {
@@ -187,99 +282,29 @@ res.status(200).json(validLearners);
   }
 });
 
-// NEW: Debug endpoint to see payment data structure
-router.get("/debug-payments/:userId", async (req, res) => {
+// NEW: Endpoint to manually update avatars for all users
+router.post("/update-all-avatars", async (req, res) => {
   try {
-    const { userId } = req.params;
+    const snapshot = await db.collection("users").get();
+    let updatedCount = 0;
     
-    const paymentsSnapshot = await db.collection("payments")
-      .where("userId", "==", userId)
-      .get();
+    const updatePromises = snapshot.docs.map(async (doc) => {
+      const data = doc.data();
+      const learnerName = extractUserName(data);
+      const avatarUrl = generateAvatarUrl(learnerName, doc.id);
+      
+      await storeAvatarInUserDocument(doc.id, avatarUrl);
+      updatedCount++;
+    });
     
-    const payments = paymentsSnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt?.toDate ? doc.data().createdAt.toDate() : null
-    }));
+    await Promise.all(updatePromises);
     
     res.json({
-      userId,
-   
-      paymentCount: payments.length,
-      payments: payments.map(p => ({
-        id: p.id,
-        learnerName:p.learnerName,
-        amount: p.amount,
-        status: p.status,
-        cartItems: p.cartItems,
-        items: p.items,
-        trackId: p.trackId,
-        courseId: p.courseId,
-        metadata: p.metadata,
-        // Include all fields for debugging
-        allFields: Object.keys(p).filter(key => !['createdAt'].includes(key))
-      }))
+      message: `Successfully updated avatars for ${updatedCount} users`,
+      updatedCount
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
-  }
-});
-
-// NEW: Get user profile data to see available fields
-router.get("/debug-user/:userId", async (req, res) => {
-  try {
-    const { userId } = req.params;
-    
-    const userDoc = await db.collection("users").doc(userId).get();
-    
-    if (!userDoc.exists) {
-      return res.status(404).json({ error: "User not found" });
-    }
-    
-    const userData = userDoc.data();
-    
-    res.json({
-      userId,
-      exists: userDoc.exists,
-      data: userData,
-      fields: Object.keys(userData),
-      createdAt: userData.createdAt?.toDate ? userData.createdAt.toDate() : null
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-router.post("/register", async (req, res) => {
-  try {
-    const { learnerName, email, courses, gender } = req.body;
-    if (!learnerName || !email) {
-      return res.status(400).json({ message: "Name and Email are required" });
-    }
-
-    const courseIds = Array.isArray(courses) ? courses : (courses ? [courses] : []);
-    const newId = uuidv4();
-    const newDoc = {
-      id: newId,
-      learnerName,
-      email,
-      courses: courseIds,
-      courseCount: courseIds.length,
-      enrolled: courseIds.length > 0,
-      amount: 0,
-      gender: gender || "Not specified",
-      status: courseIds.length > 0 ? "Enrolled" : "Pending",
-      dateJoined: new Date().toISOString().split("T")[0],
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      phone: "Not provided",
-      location: "Not specified"
-    };
-
-    await db.collection("learners").doc(newId).set(newDoc);
-    res.status(201).json({ message: "Learner registered successfully", learner: newDoc });
-  } catch (error) {
-    console.error("Error registering learner:", error);
-    res.status(500).json({ message: "Failed to register learner", error: error.message });
   }
 });
 
